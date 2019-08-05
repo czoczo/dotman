@@ -1,5 +1,7 @@
 package main
 
+// go get -u gopkg.in/src-d/go-git.v4/
+
 import (
 	"fmt"
 	"net/http"
@@ -10,8 +12,10 @@ import (
     "io/ioutil"
     "path/filepath"
     "golang.org/x/crypto/ssh"
+    "gopkg.in/src-d/go-git.v4/plumbing/transport"
     gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 	git "gopkg.in/src-d/go-git.v4"
+    githttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	. "gopkg.in/src-d/go-git.v4/_examples"
 )
 
@@ -71,35 +75,45 @@ func (fs dotFileHidingFileSystem) Open(name string) (http.File, error) {
 
 
 func main() {
-	url := "ssh://git@cz0.cz:2222/czoczo/dotrepo.git"
+	//url := "ssh://git@cz0.cz:2222/czoczo/dotrepo.git"
+	url := "https://cz0.cz/git/czoczo/dotfiles.git"
+    username := "czoczo"
+    password := ""
     directory := "dotfiles"
     baseurl := "127.0.0.1:1337"
     alphabet := "01234567890abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
 
-    s := fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME"))
-    sshKey, _ := ioutil.ReadFile(s)
-    signer, _ := ssh.ParsePrivateKey([]byte(sshKey))
-    auth := &gitssh.PublicKeys{User: "git", Signer: signer}
+
+    var auth transport.AuthMethod
+    if strings.HasPrefix(url, "http") {
+        auth = &githttp.BasicAuth {
+                Username: username,
+                Password: password,
+        }
+    }
+    if strings.HasPrefix(url, "ssh") {
+        s := fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME"))
+        sshKey, _ := ioutil.ReadFile(s)
+        signer, _ := ssh.ParsePrivateKey([]byte(sshKey))
+        auth = &gitssh.PublicKeys{User: "git", Signer: signer}
+    }
 
     if _, err := os.Stat(directory); os.IsNotExist(err) {
         // Clone the given repository to the given directory
         Info("git clone %s %s", url, directory)
-
-        //	r, err := git.PlainClone(directory, false, &git.CloneOptions{
-        //		Auth: &http.BasicAuth{
-        //			Username: username,
-        //			Password: password,
-        //		},
-        //		URL:      url,
-        //		Progress: os.Stdout,
-        //	})
-
 
         r, err := git.PlainClone(directory, false, &git.CloneOptions{
             Auth: auth,
             URL:      url,
             Progress: os.Stdout,
         })
+
+
+        //r, err := git.PlainClone(directory, false, &git.CloneOptions{
+        //    Auth: auth,
+        //    URL:      url,
+        //    Progress: os.Stdout,
+        //})
 
         CheckIfError(err)
 
