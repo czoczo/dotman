@@ -19,6 +19,20 @@ import (
 	. "gopkg.in/src-d/go-git.v4/_examples"
 )
 
+// define ssh or http connection string
+var url string
+var username string
+var password string
+var directory string
+var secret string
+
+// server config
+var baseurl string
+var alphabet string
+
+// authorization object for git connection
+var auth transport.AuthMethod
+
 // serve static
 // containsDotFile reports whether name contains a path element starting with a period.
 // The name is assumed to be a delimited by forward slashes, as guaranteed
@@ -74,18 +88,88 @@ func (fs dotFileHidingFileSystem) Open(name string) (http.File, error) {
 }
 
 
+
+func availableOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string, byName bool)  {
+    // itertate over available option
+    for key, val := range foldersMap {
+            index := key
+            if byName { index = val }
+            fmt.Fprint(w,"        "+index+")\n            if [ $2 ]; then\n                printf \"\\e[0;32m*\\e[0m)\\e[0;35m %s\\e[0m\" \""+val+"\"\n                return\n            fi\n")
+            fmt.Fprint(w,"             echo -e \"Installing \\e[0;35m"+val+"\\e[0m\"\n")
+            // search folders and add mkdir and download commands
+            // recursive walk thorough the dir
+            err := filepath.Walk(directory+"/"+val,
+                func(path string, info os.FileInfo, err error) error {
+                if err != nil {
+                    return err
+                }
+
+                // skip of not a dir
+                if info.IsDir() {
+                    return nil
+                }
+
+                // print mkdir commands
+                output := strings.TrimPrefix(path, directory+"/"+val+"/")
+                if filepath.Dir(output) != "." {
+                    fmt.Fprint(w,"             #mkdir -p $HOME/" + filepath.Dir(output)+"\n")
+                }
+
+                // print download commands
+                fmt.Fprint(w,"             #curl -H\"secret:" + secret + "\" \"" + baseurl + "/" + path + "\" > $HOME/" + output+"\n")
+                // add option to update list
+                fmt.Fprint(w,"             cat \"$HOME/.dotman/managed\" | grep -q \""+val+"\" || echo \""+val+"\" >> \"$HOME/.dotman/managed\" \n")
+                return nil
+            })
+            if err != nil {
+                log.Println(err)
+            }
+            fmt.Fprint(w,"             ;;\n")
+    }
+}
+
+func gitPull(directory string) {
+    // We instance\iate a new repository targeting the given path (the .git folder)
+    gitr, err := git.PlainOpen(directory)
+    CheckIfError(err)
+
+    // Get the working directory for the repository
+    gitw, err := gitr.Worktree()
+    CheckIfError(err)
+
+    // Pull the latest changes from the origin remote and merge into the current branch
+    Info("git pull origin")
+    err = gitw.Pull(&git.PullOptions{
+        Auth: auth,
+        RemoteName: "origin",
+    })
+//    CheckIfError(err)
+
+    // ... retrieving the branch being pointed by HEAD
+    ref, err := gitr.Head()
+    CheckIfError(err)
+    // ... retrieving the commit object
+    commit, err := gitr.CommitObject(ref.Hash())
+    CheckIfError(err)
+
+    fmt.Println(commit)
+}
+
 func main() {
     // define ssh or http connection string
-	url := "ssh://git@cz0.cz:2222/czoczo/dotrepo.git"
-	//url := "https://cz0.cz/git/czoczo/dotfiles.git"
-    username := "czoczo"
-    password := ""
-    directory := "dotfiles"
-    secret := "dupa.8"
+    url = "ssh://git@cz0.cz:2222/czoczo/dotrepo.git"
+    //url := "https://cz0.cz/git/czoczo/dotfiles.git"
+    username = "czoczo"
+    password = ""
+    directory = "dotfiles"
+    secret = "dupa.8"
 
     // server config
-    baseurl := "http://127.0.0.1:1337"
-    alphabet := "01234567890abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
+    baseurl = "http://127.0.0.1:1337"
+    alphabet = "01234567890abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
+
+    // available options list
+    foldersMap := make(map[string]string)
 
     logo := `
 \e[2;35m                $$.  ,$$    $$    $$,   $$
@@ -94,9 +178,6 @@ func main() {
 \e[0;35m          $$$$$ \e[2;35m$$    $$ $$&&&&$$ $$  '\$$
 \e[0;35m          '$$$' \e[2;35m$$    $$ $$    $$ $$   '$$\e[0m
 `
-
-    // authorization object for git connection
-    var auth transport.AuthMethod
 
     // switch protocols
     if strings.HasPrefix(url, "http") {
@@ -117,7 +198,7 @@ func main() {
         // Clone the given repository to the given directory
         Info("git clone %s %s", url, directory)
 
-        r, err := git.PlainClone(directory, false, &git.CloneOptions{
+        gitr, err := git.PlainClone(directory, false, &git.CloneOptions{
             Auth: auth,
             URL:      url,
             Progress: os.Stdout,
@@ -126,39 +207,16 @@ func main() {
         CheckIfError(err)
 
         // ... retrieving the branch being pointed by HEAD
-        ref, err := r.Head()
+        ref, err := gitr.Head()
         CheckIfError(err)
         // ... retrieving the commit object
-        commit, err := r.CommitObject(ref.Hash())
+        commit, err := gitr.CommitObject(ref.Hash())
         CheckIfError(err)
 
         fmt.Println(commit)
 
     } else {
-        // We instance\iate a new repository targeting the given path (the .git folder)
-        r, err := git.PlainOpen(directory)
-        CheckIfError(err)
-
-        // Get the working directory for the repository
-        w, err := r.Worktree()
-        CheckIfError(err)
-
-        // Pull the latest changes from the origin remote and merge into the current branch
-        Info("git pull origin")
-        err = w.Pull(&git.PullOptions{
-            Auth: auth,
-            RemoteName: "origin",
-        })
-    //    CheckIfError(err)
-
-        // ... retrieving the branch being pointed by HEAD
-        ref, err := r.Head()
-        CheckIfError(err)
-        // ... retrieving the commit object
-        commit, err := r.CommitObject(ref.Hash())
-        CheckIfError(err)
-
-        fmt.Println(commit)
+        gitPull(directory)
     }
 
     // 
@@ -183,15 +241,30 @@ func main() {
 	http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
 		log.Println( r.URL.Path)
         //commaListRegex, _ := regexp.Compile("^/([0-9a-zA-Z]+,?)+$")
-        listRegex, _ := regexp.Compile("^/[0-9a-zA-Z]+$")
+        //listRegex, _ := regexp.Compile("^/[0-9a-zA-Z]+$")
 
+
+        // list folders in reposiotory with dotfiles
+        files, err := ioutil.ReadDir(directory)
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        charCounter := 0
+        for _, f := range files {
+                // skip .git and README.mdi - case insensitive
+                match, _ := regexp.MatchString("(?i)(.git|README.md)", f.Name())
+                if match {
+                    continue
+                }
+
+                // print next alphabet character and mapped folder name
+                foldersMap[string(alphabet[charCounter])] = f.Name()
+                charCounter = charCounter+1
+
+        }
         // hanlde main request, print main script
         if r.URL.Path == "/" {
-            files, err := ioutil.ReadDir(directory)
-            if err != nil {
-                log.Fatal(err)
-            }
-
             // start with shebang
             fmt.Fprint(w,"#!/bin/sh \n")
 
@@ -214,22 +287,6 @@ curl -H"secret:$SECRET" ` + baseurl + " | sh -")
             fmt.Fprint(w,"printf \"%2s%s\\n%2s%s\\n\\n\" \"\" \"Choose dotfiles to be installed.\" \"\" \"Select by typing keys (green) and confirm with enter.\"\n")
             fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0m\"\n")
 
-            foldersMap := make(map[string]string)
-            charCounter := 0
-
-            // list folders in reposiotory with dotfiles
-            for _, f := range files {
-                    // skip .git and README.mdi - case insensitive
-                    match, _ := regexp.MatchString("(?i)(.git|README.md)", f.Name())
-                    if match {
-                        continue
-                    }
-
-                    // print next alphabet character and mapped folder name
-                    foldersMap[string(alphabet[charCounter])] = f.Name()
-                    charCounter = charCounter+1
-
-            }
             // vars for iterating available options
             count := 0
             nl := ""
@@ -252,45 +309,7 @@ curl -H"secret:$SECRET" ` + baseurl + " | sh -")
             fmt.Fprint(w,"mkdir -p \"$HOME/.dotman\"; touch \"$HOME/.dotman/managed\"\n")
             // print case function
             fmt.Fprint(w,"selectOption() {\n    case \"$1\" in\n")
-            // itertate over available oprion
-            for char := range alphabet {
-                    // exit if no keys in map anymore
-                    key := string(char)
-                    if _, ok := foldersMap[key]; !ok {
-                        continue
-                    }
-                    fmt.Fprint(w,"        "+key+")\n            if [ $2 ]; then\n                printf \"\\e[0;32m*\\e[0m)\\e[0;35m %s\\e[0m\" \""+foldersMap[key]+"\"\n                return\n            fi\n")
-                    fmt.Fprint(w,"             echo -e \"Installing \\e[0;35m"+foldersMap[key]+"\\e[0m\"\n")
-                    // search folders and add mkdir and download commands
-                    // recursive walk thorough the dir
-                    err = filepath.Walk(directory+"/"+foldersMap[key],
-                        func(path string, info os.FileInfo, err error) error {
-                        if err != nil {
-                            return err
-                        }
-
-                        // skip of not a dir
-                        if info.IsDir() {
-                            return nil
-                        }
-
-                        // print mkdir commands
-                        output := strings.TrimPrefix(path, directory+"/"+foldersMap[key]+"/")
-                        if filepath.Dir(output) != "." {
-                            fmt.Fprint(w,"             #mkdir -p $HOME/" + filepath.Dir(output)+"\n")
-                        }
-
-                        // print download commands
-                        fmt.Fprint(w,"             #curl -H\"secret:" + secret + "\" \"" + baseurl + "/" + path + "\" > $HOME/" + output+"\n")
-                        // add option to update list
-                        fmt.Fprint(w,"             cat \"$HOME/.dotman/managed\" | grep -q \""+foldersMap[key]+"\" || echo \""+foldersMap[key]+"\" >> \"$HOME/.dotman/managed\" \n")
-                        return nil
-                    })
-                    if err != nil {
-                        log.Println(err)
-                    }
-                    fmt.Fprint(w,"             ;;\n")
-            }
+            availableOptsCasePrint(w, foldersMap, false)
             // close case 
             fmt.Fprint(w,"    esac\n}\n")
 
@@ -321,7 +340,7 @@ for CHAR in $(echo "$words" | fold -w1); do
     COMMA=", "
 done
 
-if [ "$COMMA" != "," ]; then
+if [ "$COMMA" == "" ]; then
     echo "Nothing to do... exiting."
     exit 0
 fi
@@ -341,8 +360,13 @@ for CHAR in $(echo "$words" | fold -w1); do
     test "${OPTS#*$CHAR}" != "$OPTS" || continue
     selectOption $CHAR 
 done
-`)
+            `)
 
+            return
+        }
+        client_secret := r.Header.Get("secret")
+        if client_secret != secret {
+		    fmt.Fprintf(w, "echo \"Secret not given.\"")
             return
         }
 //        if commaListRegex.MatchString(r.URL.Path) {
@@ -355,19 +379,46 @@ done
 //            return
 //        }
 
-        // if URI with chosen options print download script
-        if listRegex.MatchString(r.URL.Path) {
-            choice := strings.Replace(r.URL.Path,"/","",-1)
-            var response string
-            for _, char :=  range choice {
-                response = response +" | "+ string(char)
-            }
-		    fmt.Fprintf(w, response)
+//        // if URI with chosen options print download script
+//        if listRegex.MatchString(r.URL.Path) {
+//            choice := strings.Replace(r.URL.Path,"/","",-1)
+//            var response string
+//            for _, char :=  range choice {
+//                response = response +" | "+ string(char)
+//            }
+//		    fmt.Fprintf(w, response)
+//            return
+//        }
+
+        // pull git repo
+        if r.URL.Path == "/sync" {
+            gitPull(directory)
+            fmt.Fprintf(w, "echo \"Repo synced\"")
             return
         }
 
         // if none aboue catched, return 404
-        fmt.Fprintf(w, "404 - Not Found")
+        if r.URL.Path == "/update" {
+            // print case function
+            fmt.Fprint(w,"tput clear\n")
+            fmt.Fprint(w,"selectOption() {\n    case \"$1\" in\n")
+            availableOptsCasePrint(w, foldersMap, true)
+            // close case 
+            fmt.Fprint(w,"    esac\n}\n")
+            fmt.Fprint(w,`
+if [ ! -f "$HOME/.dotman/managed" ]; then 
+    echo "It appears, you don't manage any dotfiles using dotman. Exiting."
+    exit 1
+fi
+
+for NAME in $(cat "$HOME/.dotman/managed"); do
+    selectOption $NAME 
+done
+            `)
+            return
+        }
+
+        fmt.Fprintf(w, "echo \"404 - Not Found\"")
 	})
 
 	http.ListenAndServe(":1337", nil)
