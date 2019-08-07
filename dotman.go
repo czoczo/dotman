@@ -116,7 +116,7 @@ func availableOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string,
                 }
 
                 // print download commands
-                fmt.Fprint(w,"             #curl -H\"secret:" + secret + "\" \"" + baseurl + "/" + path + "\" > $HOME/" + output+"\n")
+                fmt.Fprint(w,"             #curl -H\"secret:$SECRET\"" + baseurl + "/" + path + "\" > $HOME/" + output+"\n")
                 // add option to update list
                 fmt.Fprint(w,"             cat \"$HOME/.dotman/managed\" | grep -q \""+val+"\" || echo \""+val+"\" >> \"$HOME/.dotman/managed\" \n")
                 return nil
@@ -308,6 +308,7 @@ curl -H"secret:$SECRET" ` + baseurl + " | sh -")
             // touch list of dotfiles to be update
             fmt.Fprint(w,"mkdir -p \"$HOME/.dotman\"; touch \"$HOME/.dotman/managed\"\n")
             // print case function
+            fmt.Fprint(w,"SECRET=\""+client_secret+"\"\n")
             fmt.Fprint(w,"selectOption() {\n    case \"$1\" in\n")
             availableOptsCasePrint(w, foldersMap, false)
             // close case 
@@ -401,6 +402,7 @@ done
         if r.URL.Path == "/update" {
             // print case function
             fmt.Fprint(w,"tput clear\n")
+            fmt.Fprint(w,"SECRET=\""+client_secret+"\"\n")
             fmt.Fprint(w,"selectOption() {\n    case \"$1\" in\n")
             availableOptsCasePrint(w, foldersMap, true)
             // close case 
