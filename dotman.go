@@ -1,6 +1,7 @@
 package main
 
 // go get -u gopkg.in/src-d/go-git.v4/
+// go get github.com/gliderlabs/ssh
 
 import (
 	"fmt"
@@ -19,6 +20,10 @@ import (
 	. "gopkg.in/src-d/go-git.v4/_examples"
 )
 
+
+// Global variables
+// =================================================
+
 // define ssh or http connection string
 var url string
 var username string
@@ -27,75 +32,36 @@ var directory string
 var secret string
 
 // server config
+// URL (e.g. https://exmaple.org:31337/dotfiles) under to create links to resources
 var baseurl string
+// set of characters to assign options to
 var alphabet string
+
+
+
+// Utilities
+// =================================================
 
 // authorization object for git connection
 var auth transport.AuthMethod
 
-// serve static
-// containsDotFile reports whether name contains a path element starting with a period.
-// The name is assumed to be a delimited by forward slashes, as guaranteed
-// by the http.FileSystem interface.
-func containsDotFile(name string) bool {
-//    parts := strings.Split(name, "/")
-//    for _, part := range parts {
-        if strings.HasPrefix(name, "/.") || name=="/README.md" {
-            return true
-        }
-//    }
-    return false
-}
+// print bash CASE operator body with available dotfiles folders as options.
+// This CASE operator is used to eihter print options for menu, or output command for installing dotfiles
+func repoOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string, byName bool)  {
 
-// dotFileHidingFile is the http.File use in dotFileHidingFileSystem.
-// It is used to wrap the Readdir method of http.File so that we can
-// remove files and directories that start with a period from its output.
-type dotFileHidingFile struct {
-    http.File
-}
-
-// Readdir is a wrapper around the Readdir method of the embedded File
-// that filters out all files that start with a period in their name.
-func (f dotFileHidingFile) Readdir(n int) (fis []os.FileInfo, err error) {
-    files, err := f.File.Readdir(n)
-    for _, file := range files { // Filters out the dot files
-        if !strings.HasPrefix(file.Name(), ".") && file.Name()!="README.md" {
-            fis = append(fis, file)
-        }
-    }
-    return
-}
-
-// dotFileHidingFileSystem is an http.FileSystem that hides
-// hidden "dot files" from being served.
-type dotFileHidingFileSystem struct {
-    http.FileSystem
-}
-
-// Open is a wrapper around the Open method of the embedded FileSystem
-// that serves a 403 permission error when name has a file or directory
-// with whose name starts with a period in its path.
-func (fs dotFileHidingFileSystem) Open(name string) (http.File, error) {
-    if containsDotFile(name) { // If dot file, return 403 response
-        return nil, os.ErrPermission
-    }
-
-    file, err := fs.FileSystem.Open(name)
-    if err != nil {
-        return nil, err
-    }
-    return dotFileHidingFile{file}, err
-}
-
-
-
-func availableOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string, byName bool)  {
     // itertate over available option
     for key, val := range foldersMap {
             index := key
+
+            // map either by alphabet char, or folder name
             if byName { index = val }
+
+            // print bash condition. If $2 passed, print menu option and return
             fmt.Fprint(w,"        "+index+")\n            if [ $2 ]; then\n                printf \"\\e[0;32m*\\e[0m)\\e[0;35m %s\\e[0m\" \""+val+"\"\n                return\n            fi\n")
+
+            // else print download commands
             fmt.Fprint(w,"             echo -e \"Installing \\e[0;35m"+val+"\\e[0m\"\n")
+
             // search folders and add mkdir and download commands
             // recursive walk thorough the dir
             err := filepath.Walk(directory+"/"+val,
@@ -104,12 +70,12 @@ func availableOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string,
                     return err
                 }
 
-                // skip of not a dir
+                // skip if not a dir
                 if info.IsDir() {
                     return nil
                 }
 
-                // print mkdir commands
+                // if not, strip absolute path and filename. Print mkdir commands
                 output := strings.TrimPrefix(path, directory+"/"+val+"/")
                 if filepath.Dir(output) != "." {
                     fmt.Fprint(w,"             #mkdir -p $HOME/" + filepath.Dir(output)+"\n")
@@ -117,10 +83,12 @@ func availableOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string,
 
                 // print download commands
                 fmt.Fprint(w,"             #curl -H\"secret:$SECRET\"" + baseurl + "/" + path + "\" > $HOME/" + output+"\n")
-                // add option to update list
+
+                // if not present, add option to managed dotfiles list
                 fmt.Fprint(w,"             cat \"$HOME/.dotman/managed\" | grep -q \""+val+"\" || echo \""+val+"\" >> \"$HOME/.dotman/managed\" \n")
                 return nil
             })
+
             if err != nil {
                 log.Println(err)
             }
@@ -128,22 +96,23 @@ func availableOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string,
     }
 }
 
+// git pull method used to sync shared folder
 func gitPull(directory string) {
-    // We instance\iate a new repository targeting the given path (the .git folder)
+
+    // we instance\iate a new repository targeting the given path (the .git folder)
     gitr, err := git.PlainOpen(directory)
     CheckIfError(err)
 
-    // Get the working directory for the repository
+    // get the working directory for the repository
     gitw, err := gitr.Worktree()
     CheckIfError(err)
 
-    // Pull the latest changes from the origin remote and merge into the current branch
+    // pull the latest changes from the origin remote and merge into the current branch
     Info("git pull origin")
     err = gitw.Pull(&git.PullOptions{
         Auth: auth,
         RemoteName: "origin",
     })
-//    CheckIfError(err)
 
     // ... retrieving the branch being pointed by HEAD
     ref, err := gitr.Head()
@@ -154,6 +123,81 @@ func gitPull(directory string) {
 
     fmt.Println(commit)
 }
+
+
+
+// Functions for serving cloned repository files on HTTP
+// =================================================
+
+// blacklisting some files from being served
+
+// check if path starts with dot or a README.md
+func containsDotFile(name string) bool {
+        if strings.HasPrefix(name, "/.") || name=="/README.md" {
+            return true
+        }
+    return false
+}
+
+// fileHidingFile is the http.File use in fileHidingFileSystem.
+// it is used to wrap the Readdir method of http.File so that we can
+// remove files and directories that are blacklisted from its output.
+type fileHidingFile struct {
+    http.File
+}
+
+// readdir is a wrapper around the Readdir method of the embedded File
+// that filters out all files that start with a period in their name.
+func (f fileHidingFile) Readdir(n int) (fis []os.FileInfo, err error) {
+    files, err := f.File.Readdir(n)
+    for _, file := range files { // filters out the files
+        if !strings.HasPrefix(file.Name(), ".") && file.Name()!="README.md" {
+            fis = append(fis, file)
+        }
+    }
+    return
+}
+
+// fileHidingFileSystem is an http.FileSystem that hides
+// hidden "dot files" from being served.
+type fileHidingFileSystem struct {
+    http.FileSystem
+}
+
+// open is a wrapper around the Open method of the embedded FileSystem
+// that serves a 403 permission error when name has a file or directory
+// with whose name starts with a period in its path.
+func (fs fileHidingFileSystem) Open(name string) (http.File, error) {
+    if containsDotFile(name) { // If dot file, return 403 response
+        return nil, os.ErrPermission
+    }
+
+    file, err := fs.FileSystem.Open(name)
+    if err != nil {
+        return nil, err
+    }
+    return fileHidingFile{file}, err
+}
+
+// Check if secret passed to protect shared dotfiles
+func checkSecretThenServe(h http.Handler) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        client_secret := r.Header.Get("secret")
+        if client_secret != secret {
+            fmt.Fprint(w,"Ups! No secret given.\n")
+            w.WriteHeader(http.StatusForbidden)
+            return
+        }
+        // Serve with the actual handler.
+        h.ServeHTTP(w, r)
+    }
+}
+
+
+
+
+// Program starts here
+// =================================================
 
 func main() {
     // define ssh or http connection string
@@ -171,6 +215,7 @@ func main() {
     // available options list
     foldersMap := make(map[string]string)
 
+    // define var for program ascii logo
     logo := `
 \e[2;35m                $$.  ,$$    $$    $$,   $$
                 $$$,.$$$  ,$/\$.  $$\.  $$
@@ -179,7 +224,7 @@ func main() {
 \e[0;35m          '$$$' \e[2;35m$$    $$ $$    $$ $$   '$$\e[0m
 `
 
-    // switch protocols
+    // switch available protocols, and generate auth object
     if strings.HasPrefix(url, "http") {
         auth = &githttp.BasicAuth {
                 Username: username,
@@ -219,40 +264,40 @@ func main() {
         gitPull(directory)
     }
 
-    // 
-    checkHeaderThenServe := func(h http.Handler) http.HandlerFunc {
-        return func(w http.ResponseWriter, r *http.Request) {
-            client_secret := r.Header.Get("secret")
-            if client_secret != secret {
-                fmt.Fprint(w,"Ups! No secret given.\n")
-                w.WriteHeader(http.StatusForbidden)
-                return
-            }
-            // Serve with the actual handler.
-            h.ServeHTTP(w, r)
-        }
-    }
+    // serve locally cloned repo with dotfiles through HTTP
+    // secured with secret and file blacklisting
+    fs := checkSecretThenServe(http.FileServer(fileHidingFileSystem{http.Dir(directory)}))
 
-    // serve locally cloned repo with dotfiles through file server under 'directory' variable name
-    fs := checkHeaderThenServe(http.FileServer(dotFileHidingFileSystem{http.Dir(directory)}))
+    // handle file serving another 'directory' variable name
     http.Handle("/"+directory+"/", http.StripPrefix("/"+directory+"/", fs))
 
-    // handle other http requests
+
+
+// URL Router, methods handling different endpoints
+// =================================================
+
+    // handle all other HTTP requests 
 	http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
+
+        // log request
 		log.Println( r.URL.Path)
+
+        // regex for options as URL, not used as for now
         //commaListRegex, _ := regexp.Compile("^/([0-9a-zA-Z]+,?)+$")
         //listRegex, _ := regexp.Compile("^/[0-9a-zA-Z]+$")
 
 
-        // list folders in reposiotory with dotfiles
+        // get folder list made of 1st level of folders in reposiotory contining dotfiles
         files, err := ioutil.ReadDir(directory)
         if err != nil {
             log.Fatal(err)
         }
 
+        // iterate over above list, and assign characters from alphabet
         charCounter := 0
         for _, f := range files {
-                // skip .git and README.mdi - case insensitive
+
+                // skip .git and README.md - case insensitive
                 match, _ := regexp.MatchString("(?i)(.git|README.md)", f.Name())
                 if match {
                     continue
@@ -263,15 +308,25 @@ func main() {
                 charCounter = charCounter+1
 
         }
-        // hanlde main request, print main script
-        if r.URL.Path == "/" {
-            // start with shebang
-            fmt.Fprint(w,"#!/bin/sh \n")
 
-            fmt.Fprint(w,"tput clear\n")
+        // hanlde main request, print main menu script
+        if r.URL.Path == "/" {
+
+            // start with shebang
+            fmt.Fprint(w,`
+#!/bin/sh)
+tput clear\n`)
+
+            // print ASCII logo
             fmt.Fprint(w,"echo -e '"+strings.ReplaceAll(logo,"'","'\"'\"'")+"'\n")
+
+
             fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0;37m\"\n")
+
+            // check for secret presence in HTTP header
             client_secret := r.Header.Get("secret")
+
+            // if bad secret, print secret prompt
             if client_secret != secret {
                 fmt.Fprint(w,`
 exec 3<>/dev/tty
@@ -280,37 +335,48 @@ read -u 3 -s SECRET
 curl -H"secret:$SECRET" ` + baseurl + " | sh -")
                 return
             }
+
             // print error if more folders than available alphabet
             if len(files) > len(alphabet) {
                 fmt.Fprint(w,"printf \"%2s%s\\n%4s%s\\n%4s%s\\n%4s%s\\n\\n%2s%s\\n\\n\" \"\" \"Congratz - you reached the limit of number of supported folders. Either:\" \"\" \"a) Wait for me to have the same problem someday.\" \"\" \"b) Increase number of unique characters in 'alphabet' variable.\" \"\" \"c) Implement other solution yourself.\" \"\" \"Decide which is the fastes option on your own ;)\"\n")
             }
+
+            // print menu
             fmt.Fprint(w,"printf \"%2s%s\\n%2s%s\\n\\n\" \"\" \"Choose dotfiles to be installed.\" \"\" \"Select by typing keys (green) and confirm with enter.\"\n")
             fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0m\"\n")
 
             // vars for iterating available options
             count := 0
             nl := ""
+
             // iterate over options
             for char := range alphabet {
+
                     // exit if no keys in map anymore
                     key := string(char)
                     if _, ok := foldersMap[key]; !ok {
                         continue
                     }
+
+                    // handle deviding menu in 3 columns
                     count += 1
                     if count % 3 == 0 {
                         nl = "\\n"
                     }
+
+                    // print menu option
                     fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m"+nl+"\" \""+key+"\" \""+foldersMap[key]+"\" \n")
                     nl = ""
             }
 
             // touch list of dotfiles to be update
             fmt.Fprint(w,"mkdir -p \"$HOME/.dotman\"; touch \"$HOME/.dotman/managed\"\n")
+
             // print case function
             fmt.Fprint(w,"SECRET=\""+client_secret+"\"\n")
             fmt.Fprint(w,"selectOption() {\n    case \"$1\" in\n")
-            availableOptsCasePrint(w, foldersMap, false)
+            repoOptsCasePrint(w, foldersMap, false)
+
             // close case 
             fmt.Fprint(w,"    esac\n}\n")
 
@@ -400,11 +466,13 @@ done
 
         // if none aboue catched, return 404
         if r.URL.Path == "/update" {
+
             // print case function
             fmt.Fprint(w,"tput clear\n")
             fmt.Fprint(w,"SECRET=\""+client_secret+"\"\n")
             fmt.Fprint(w,"selectOption() {\n    case \"$1\" in\n")
-            availableOptsCasePrint(w, foldersMap, true)
+            repoOptsCasePrint(w, foldersMap, true)
+
             // close case 
             fmt.Fprint(w,"    esac\n}\n")
             fmt.Fprint(w,`
