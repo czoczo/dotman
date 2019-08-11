@@ -219,7 +219,7 @@ func main() {
     logo := `
 \e[2;35m                $$.  ,$$    $$    $$,   $$
                 $$$,.$$$  ,$/\$.  $$\.  $$
-\e[0;35m          .$$$. \e[2;35m$$'$$'$$ ,$$  $$. $$'$$.$$
+\e[0;35m          .$$$. \e[2;35m$$'$$'$$ ,$$__$$. $$'$$.$$
 \e[0;35m          $$$$$ \e[2;35m$$    $$ $$&&&&$$ $$  '\$$
 \e[0;35m          '$$$' \e[2;35m$$    $$ $$    $$ $$   '$$\e[0m
 `
@@ -315,7 +315,8 @@ func main() {
             // start with shebang
             fmt.Fprint(w,`
 #!/bin/sh)
-tput clear\n`)
+tput clear
+`)
 
             // print ASCII logo
             fmt.Fprint(w,"echo -e '"+strings.ReplaceAll(logo,"'","'\"'\"'")+"'\n")
@@ -342,7 +343,7 @@ curl -H"secret:$SECRET" ` + baseurl + " | sh -")
             }
 
             // print menu
-            fmt.Fprint(w,"printf \"%2s%s\\n%2s%s\\n\\n\" \"\" \"Choose dotfiles to be installed.\" \"\" \"Select by typing keys (green) and confirm with enter.\"\n")
+            fmt.Fprint(w,"printf \"%2s%s\\n%2s%s\\e[32m%s\\e[0;37m%s\\n\\n\" \"\" \"Choose dotfiles to be installed.\" \"\" \"Select by typing keys (\" \"green\" \") and confirm with enter.\"\n")
             fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0m\"\n")
 
             // vars for iterating available options
@@ -464,7 +465,7 @@ done
             return
         }
 
-        // if none aboue catched, return 404
+        // if none above catched, return 404
         if r.URL.Path == "/update" {
 
             // print case function
