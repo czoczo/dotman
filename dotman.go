@@ -271,15 +271,11 @@ func main() {
     // handle file serving another 'directory' variable name
     http.Handle("/"+directory+"/", http.StripPrefix("/"+directory+"/", fs))
 
-
-
-// URL Router, methods handling different endpoints
-// =================================================
-
     // handle all other HTTP requests 
 	http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
 
-        // log request
+        // on each request:
+        // log
 		log.Println( r.URL.Path)
 
         // regex for options as URL, not used as for now
@@ -293,7 +289,7 @@ func main() {
             log.Fatal(err)
         }
 
-        // iterate over above list, and assign characters from alphabet
+            // iterate over above list, and assign characters from alphabet to folders in map
         charCounter := 0
         for _, f := range files {
 
@@ -308,6 +304,9 @@ func main() {
                 charCounter = charCounter+1
 
         }
+
+// URL Router, methods handling different endpoints
+// =================================================
 
         // hanlde main request, print main menu script
         if r.URL.Path == "/" {
