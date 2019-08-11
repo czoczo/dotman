@@ -2,10 +2,12 @@ package main
 
 // go get -u gopkg.in/src-d/go-git.v4/
 // go get github.com/gliderlabs/ssh
+// go get github.com/namsral/flag
 
 import (
 	"fmt"
 	"net/http"
+    "strconv"
     "log"
     "regexp"
 	"os"
@@ -13,6 +15,7 @@ import (
     "io/ioutil"
     "path/filepath"
     "golang.org/x/crypto/ssh"
+    "github.com/namsral/flag"
     "gopkg.in/src-d/go-git.v4/plumbing/transport"
     gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 	git "gopkg.in/src-d/go-git.v4"
@@ -30,6 +33,7 @@ var username string
 var password string
 var directory string
 var secret string
+var port int
 
 // server config
 // URL (e.g. https://exmaple.org:31337/dotfiles) under to create links to resources
@@ -185,7 +189,6 @@ func checkSecretThenServe(h http.Handler) http.HandlerFunc {
         client_secret := r.Header.Get("secret")
         if client_secret != secret {
             fmt.Fprint(w,"Ups! No secret given.\n")
-            w.WriteHeader(http.StatusForbidden)
             return
         }
         // Serve with the actual handler.
@@ -200,16 +203,56 @@ func checkSecretThenServe(h http.Handler) http.HandlerFunc {
 // =================================================
 
 func main() {
+
+    // parse arguments/environment configuration
+    var sshkey string
+    flag.StringVar(&url, "url", "", "git repository to connect to")
+    flag.StringVar(&password, "password", "", "used to connect to git repository, when using http protocol")
+    flag.StringVar(&directory, "directory", "dotfiles", "endpoint under which to serve files.")
+    flag.StringVar(&secret, "secret", "", "used to protect files served by server")
+    s := fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME"))
+    flag.StringVar(&sshkey, "sshkey", s, "used to connect git repository when using ssh protocol.")
+    flag.IntVar(&port, "port", 1337, "servers listening port")
+    flag.StringVar(&baseurl, "baseurl", "http://127.0.0.1:1337", "URL for generating download commands.")
+	flag.Parse()
+
+    // validate configuration
+    isSsh, _ := regexp.Compile("ssh://")
+
+    // check url
+    re := regexp.MustCompile("(ssh|https?)://(.+)@.+")
+    if re.MatchString(url) == false {
+        log.Println("Provided repository URL: " + url + " not supported. Provide either ssh or http(s) protocol URL with username. Exiting.")
+        os.Exit(1)
+    }
+
+    // extract username
+    unamematch := re.FindStringSubmatch(url)
+    username = unamematch[2]
+
+    // check baseurl
+    match, _ := regexp.MatchString("https?://.+",baseurl)
+    if match == false {
+        log.Println("Unsupported base URL given. Use http or https protocol based URL. Exiting.")
+        os.Exit(2)
+    }
+
+    // check if ssh key exists
+    if _, err := os.Stat(sshkey); isSsh.MatchString(url) && os.IsNotExist(err) {
+        log.Println("SSH Key " + sshkey + " not found. Exiting.")
+        os.Exit(3)
+    }
+
+    // print hello and server configuration
+    log.Println("Starting dotman - dot file manager.")
+    log.Println("Repository URL: " + url)
+    log.Println("GIT username: " + username)
+    log.Println("Listening port: " + strconv.Itoa(port))
+    log.Println("Download URLs prefix: " + baseurl+"/"+directory)
+
     // define ssh or http connection string
-    url = "ssh://git@cz0.cz:2222/czoczo/dotrepo.git"
-    //url := "https://cz0.cz/git/czoczo/dotfiles.git"
-    username = "czoczo"
-    password = ""
-    directory = "dotfiles"
-    secret = "dupa.8"
 
     // server config
-    baseurl = "http://127.0.0.1:1337"
     alphabet = "01234567890abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
 
     // available options list
@@ -232,8 +275,7 @@ func main() {
         }
     }
     if strings.HasPrefix(url, "ssh") {
-        s := fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME"))
-        sshKey, _ := ioutil.ReadFile(s)
+        sshKey, _ := ioutil.ReadFile(sshkey)
         signer, _ := ssh.ParsePrivateKey([]byte(sshKey))
         auth = &gitssh.PublicKeys{User: "git", Signer: signer}
     }
@@ -308,7 +350,7 @@ func main() {
 // URL Router, methods handling different endpoints
 // =================================================
 
-        // hanlde main request, print main menu script
+        // handle main request, print main menu script
         if r.URL.Path == "/" {
 
             // start with shebang
@@ -431,11 +473,14 @@ done
 
             return
         }
+
+        // all other following routes require secret 
         client_secret := r.Header.Get("secret")
         if client_secret != secret {
 		    fmt.Fprintf(w, "echo \"Secret not given.\"")
             return
         }
+
 //        if commaListRegex.MatchString(r.URL.Path) {
 //            slice := strings.Split(strings.Replace(r.URL.Path,"/","",-1), ",")
 //            var response string
@@ -457,14 +502,14 @@ done
 //            return
 //        }
 
-        // pull git repo
+        // handle synchronization endpoint - pull git repo
         if r.URL.Path == "/sync" {
             gitPull(directory)
             fmt.Fprintf(w, "echo \"Repo synced\"")
             return
         }
 
-        // if none above catched, return 404
+        // handle update script endpoint
         if r.URL.Path == "/update" {
 
             // print case function
@@ -488,8 +533,9 @@ done
             return
         }
 
+        // if none above catched, return 404
         fmt.Fprintf(w, "echo \"404 - Not Found\"")
 	})
 
-	http.ListenAndServe(":1337", nil)
+	http.ListenAndServe(":"+strconv.Itoa(port), nil)
 }
