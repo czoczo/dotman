@@ -20,7 +20,6 @@ import (
     gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 	git "gopkg.in/src-d/go-git.v4"
     githttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	. "gopkg.in/src-d/go-git.v4/_examples"
 )
 
 
@@ -48,6 +47,26 @@ var alphabet string
 
 // authorization object for git connection
 var auth transport.AuthMethod
+
+// CheckIfError should be used to naively panics if an error is not nil.
+func CheckIfError(err error) {
+	if err == nil {
+		return
+	}
+
+	fmt.Printf("\x1b[31;1m%s\x1b[0m\n", fmt.Sprintf("error: %s", err))
+	os.Exit(1)
+}
+
+// Info should be used to describe the example commands that are about to run.
+func Info(format string, args ...interface{}) {
+	fmt.Printf("\x1b[34;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
+}
+
+// Warning should be used to display a warning
+func Warning(format string, args ...interface{}) {
+	fmt.Printf("\x1b[36;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
+}
 
 // print bash CASE operator body with available dotfiles folders as options.
 // This CASE operator is used to eihter print options for menu, or output command for installing dotfiles

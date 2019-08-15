@@ -22,7 +22,7 @@ RUN go build -o /go/bin/dotman
 ############################
 # STEP 2 build a small image
 ############################
-FROM scratch
+FROM alpine
 
 # Copy our static executable.
 COPY --from=builder /go/bin/dotman /go/bin/dotman
