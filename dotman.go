@@ -13,6 +13,10 @@ import (
 	"os"
     "strings"
     "io/ioutil"
+    "crypto/rsa"
+    "crypto/rand"
+    "encoding/pem"
+    "crypto/x509"
     "path/filepath"
     "golang.org/x/crypto/ssh"
     "github.com/namsral/flag"
@@ -60,7 +64,7 @@ func CheckIfError(err error) {
 
 // Info should be used to describe the example commands that are about to run.
 func Info(format string, args ...interface{}) {
-	fmt.Printf("\x1b[34;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
+	fmt.Printf("\x1b[35;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
 }
 
 // Warning should be used to display a warning
@@ -147,7 +151,43 @@ func gitPull(directory string) {
     fmt.Println(commit)
 }
 
+// MakeSSHKeyPair make a pair of public and private keys for SSH access.
+// Public key is encoded in the format for inclusion in an OpenSSH authorized_keys file.
+// Private Key generated is PEM encoded
+func MakeSSHKeyPair(pubKeyPath, privateKeyPath string) error {
+    privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+    if err != nil {
+        return err
+    }
 
+    // generate and write private key as PEM
+    privateKeyFile, err := os.Create(privateKeyPath)
+    defer privateKeyFile.Close()
+    if err != nil {
+        return err
+    }
+    privateKeyPEM := &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privateKey)}
+    if err := pem.Encode(privateKeyFile, privateKeyPEM); err != nil {
+        return err
+    }
+
+    // generate and write public key
+    pub, err := ssh.NewPublicKey(&privateKey.PublicKey)
+    if err != nil {
+        return err
+    }
+    return ioutil.WriteFile(pubKeyPath, ssh.MarshalAuthorizedKey(pub), 0655)
+}
+
+// fileExists checks if a file exists and is not a directory before we
+// try using it to prevent further errors.
+func fileExists(filename string) bool {
+    info, err := os.Stat(filename)
+    if os.IsNotExist(err) {
+        return false
+    }
+    return !info.IsDir()
+}
 
 // Functions for serving cloned repository files on HTTP
 // =================================================
@@ -223,14 +263,29 @@ func checkSecretThenServe(h http.Handler) http.HandlerFunc {
 
 func main() {
 
+    // define var for program ascii logo
+    logo := `
+\e[2;35m                $$.  ,$$    $$    $$,   $$
+                $$$,.$$$  ,$/\$.  $$\.  $$
+\e[0;35m          .$$$. \e[2;35m$$'$$'$$ ,$$__$$. $$'$$.$$
+\e[0;35m          $$$$$ \e[2;35m$$    $$ $$&&&&$$ $$  '\$$
+\e[0;35m          '$$$' \e[2;35m$$    $$ $$    $$ $$   '$$\e[0m
+`
+    // hello
+    log.Println("Starting \"dot file manager\" aka:")
+
+    // print logo (remove colors)
+    reg, _ := regexp.Compile("\\\\e\\[[0-9](;[0-9]+)?m")
+    //reg, _ = regexp.Compile("\\\\e\\[")
+    log.Println(reg.ReplaceAllString(logo,""))
+
     // parse arguments/environment configuration
     var sshkey string
     flag.StringVar(&url, "url", "", "git repository to connect to")
     flag.StringVar(&password, "password", "", "used to connect to git repository, when using http protocol")
     flag.StringVar(&directory, "directory", "dotfiles", "endpoint under which to serve files.")
     flag.StringVar(&secret, "secret", "", "used to protect files served by server")
-    s := fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME"))
-    flag.StringVar(&sshkey, "sshkey", s, "used to connect git repository when using ssh protocol.")
+    flag.StringVar(&sshkey, "sshkey", "id_rsa", "path to key used to connect git repository when using ssh protocol.")
     flag.IntVar(&port, "port", 1337, "servers listening port")
     flag.StringVar(&baseurl, "baseurl", "http://127.0.0.1:1337", "URL for generating download commands.")
 	flag.Parse()
@@ -256,10 +311,12 @@ func main() {
         os.Exit(2)
     }
 
-    // check if ssh key exists
-    if _, err := os.Stat(sshkey); isSsh.MatchString(url) && os.IsNotExist(err) {
-        log.Println("SSH Key " + sshkey + " not found. Exiting.")
-        os.Exit(3)
+    // check if ssh protocol
+    if isSsh.MatchString(url) && !fileExists(sshkey) {
+        log.Println("SSH Key " + sshkey + " not found. Falling back to generating key pair")
+        err := MakeSSHKeyPair("id_rsa.pub","id_rsa")
+        CheckIfError(err)
+        log.Println("SSH Key pair generated successfully")
     }
 
     // print hello and server configuration
@@ -269,6 +326,14 @@ func main() {
     log.Println("Listening port: " + strconv.Itoa(port))
     log.Println("Download URLs prefix: " + baseurl+"/"+directory)
 
+    // if using generated key pair print public key
+    if sshkey == "id_rsa" && fileExists("id_rsa.pub") {
+        log.Println("Using generate ssh key pair. Public key is:\n")
+        pubkey, err := ioutil.ReadFile("id_rsa.pub")
+        CheckIfError(err)
+        fmt.Println(string(pubkey))
+    }
+
     // define ssh or http connection string
 
     // server config
@@ -276,15 +341,6 @@ func main() {
 
     // available options list
     foldersMap := make(map[string]string)
-
-    // define var for program ascii logo
-    logo := `
-\e[2;35m                $$.  ,$$    $$    $$,   $$
-                $$$,.$$$  ,$/\$.  $$\.  $$
-\e[0;35m          .$$$. \e[2;35m$$'$$'$$ ,$$__$$. $$'$$.$$
-\e[0;35m          $$$$$ \e[2;35m$$    $$ $$&&&&$$ $$  '\$$
-\e[0;35m          '$$$' \e[2;35m$$    $$ $$    $$ $$   '$$\e[0m
-`
 
     // switch available protocols, and generate auth object
     if strings.HasPrefix(url, "http") {
