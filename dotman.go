@@ -39,7 +39,7 @@ var secret string
 var port int
 
 // server config
-// URL (e.g. https://exmaple.org:31337/dotfiles) under to create links to resources
+// URL (e.g. https://exmaple.org:1338/dotfiles) under to create links to resources
 var baseurl string
 // set of characters to assign options to
 var alphabet string
@@ -286,8 +286,8 @@ func main() {
     flag.StringVar(&directory, "directory", "dotfiles", "endpoint under which to serve files.")
     flag.StringVar(&secret, "secret", "", "used to protect files served by server")
     flag.StringVar(&sshkey, "sshkey", "id_rsa", "path to key used to connect git repository when using ssh protocol.")
-    flag.IntVar(&port, "port", 1337, "servers listening port")
-    flag.StringVar(&baseurl, "baseurl", "http://127.0.0.1:1337", "URL for generating download commands.")
+    flag.IntVar(&port, "port", 1338, "servers listening port")
+    flag.StringVar(&baseurl, "baseurl", "http://127.0.0.1:1338", "URL for generating download commands.")
 	flag.Parse()
 
     // validate configuration
@@ -296,6 +296,7 @@ func main() {
     // check url
     re := regexp.MustCompile("(ssh|https?)://(.+)@.+")
     if re.MatchString(url) == false {
+        flag.PrintDefaults()
         log.Println("Provided repository URL: " + url + " not supported. Provide either ssh or http(s) protocol URL with username. Exiting.")
         os.Exit(1)
     }

@@ -1,0 +1,17 @@
+version: '3'
+
+networks:
+  dotmanapp:
+services:
+  dotman:
+    build: .
+    container_name: dotman
+    env_file:
+      - env
+    ports:
+      - "1338:1338"
+    volumes:
+      - ./id_rsa:/ida_rsa
+      - ./id_rsa.pub:/ida_rsa.pub
+    networks:
+      - dotmanapp
