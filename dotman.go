@@ -297,6 +297,7 @@ func main() {
     re := regexp.MustCompile("(ssh|https?)://(.+)@.+")
     if re.MatchString(url) == false {
         flag.PrintDefaults()
+        fmt.Println()
         log.Println("Provided repository URL: " + url + " not supported. Provide either ssh or http(s) protocol URL with username. Exiting.")
         os.Exit(1)
     }
