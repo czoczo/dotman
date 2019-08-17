@@ -393,16 +393,22 @@ func main() {
     basematch := basere.FindStringSubmatch(baseurl)
     folder := strings.TrimSuffix(basematch[1],"/")
 
+// URL Router, methods handling different endpoints
+// =================================================
+
+    // handle fixed routes first
     // handle file serving another 'directory' variable name
     http.Handle(folder+"/"+directory+"/", http.StripPrefix(folder+"/"+directory+"/", fs))
     log.Println("Serving files under: " + folder+"/"+directory+"/")
 
-    // handle all other HTTP requests 
+    // handle all other HTTP requests with dynamic URLs and headers
     http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
 
         // on each request:
+        // strip backslash at the end of request
+        requestPath := strings.TrimSuffix(r.URL.Path,"/")
         // log
-		log.Println( r.URL.Path)
+		log.Println(requestPath)
 
         // regex for options as URL, not used as for now
         //commaListRegex, _ := regexp.Compile("^/([0-9a-zA-Z]+,?)+$")
@@ -431,16 +437,8 @@ func main() {
 
         }
 
-// URL Router, methods handling different endpoints
-// =================================================
-
-        if folder == "" {
-            folder = "/"
-        }
-        log.Println("Serving under: " + folder)
-
         // handle main request, print main menu script
-        if r.URL.Path == folder {
+        if requestPath == folder {
 
             // start with shebang
             fmt.Fprint(w,`
@@ -456,7 +454,6 @@ tput clear
 
             // check for secret presence in HTTP header
             client_secret := r.Header.Get("secret")
-            log.Println("Client Secret: " + client_secret)
 
             // if bad secret, print secret prompt
             if client_secret != secret {
@@ -572,8 +569,8 @@ done
             return
         }
 
-//        if commaListRegex.MatchString(r.URL.Path) {
-//            slice := strings.Split(strings.Replace(r.URL.Path,"/","",-1), ",")
+//        if commaListRegex.MatchString(requestPath) {
+//            slice := strings.Split(strings.Replace(requestPath,"/","",-1), ",")
 //            var response string
 //            for _, num := range slice {
 //                response = response +" | "+ num
@@ -583,8 +580,8 @@ done
 //        }
 
 //        // if URI with chosen options print download script
-//        if listRegex.MatchString(r.URL.Path) {
-//            choice := strings.Replace(r.URL.Path,"/","",-1)
+//        if listRegex.MatchString(requestPath) {
+//            choice := strings.Replace(requestPath,"/","",-1)
 //            var response string
 //            for _, char :=  range choice {
 //                response = response +" | "+ string(char)
@@ -594,14 +591,14 @@ done
 //        }
 
         // handle synchronization endpoint - pull git repo
-        if r.URL.Path == folder + "sync" {
+        if requestPath == folder + "/sync" {
             gitPull(directory)
             fmt.Fprintf(w, "echo \"Repo synced\"")
             return
         }
 
         // handle update script endpoint
-        if r.URL.Path == folder + "update" {
+        if requestPath == folder + "/update" {
 
             // print case function
             fmt.Fprint(w,"tput clear\n")
@@ -625,6 +622,7 @@ done
         }
 
         // if none above catched, return 404
+        w.WriteHeader(http.StatusNotFound)
         fmt.Fprintf(w, "echo \"404 - Not Found\"")
 	})
 
