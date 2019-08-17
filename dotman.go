@@ -285,7 +285,7 @@ func main() {
     flag.StringVar(&password, "password", "", "used to connect to git repository, when using http protocol")
     flag.StringVar(&directory, "directory", "dotfiles", "endpoint under which to serve files.")
     flag.StringVar(&secret, "secret", "", "used to protect files served by server")
-    flag.StringVar(&sshkey, "sshkey", "id_rsa", "path to key used to connect git repository when using ssh protocol.")
+    flag.StringVar(&sshkey, "sshkey", "ssh_keys/id_rsa", "path to key used to connect git repository when using ssh protocol.")
     flag.IntVar(&port, "port", 1338, "servers listening port")
     flag.StringVar(&baseurl, "baseurl", "http://127.0.0.1:1338", "URL for generating download commands.")
 	flag.Parse()
@@ -316,7 +316,8 @@ func main() {
     // check if ssh protocol
     if isSsh.MatchString(url) && !fileExists(sshkey) {
         log.Println("SSH Key " + sshkey + " not found. Falling back to generating key pair")
-        err := MakeSSHKeyPair("id_rsa.pub","id_rsa")
+        err := MakeSSHKeyPair("ssh_keys/id_rsa.pub","ssh_keys/id_rsa")
+        os.MkdirAll("ssh_keys", os.ModePerm)
         CheckIfError(err)
         log.Println("SSH Key pair generated successfully")
     }
@@ -329,9 +330,9 @@ func main() {
     log.Println("Download URLs prefix: " + baseurl+"/"+directory)
 
     // if using generated key pair print public key
-    if sshkey == "id_rsa" && fileExists("id_rsa.pub") {
+    if sshkey == "ssh_keys/id_rsa" && fileExists("ssh_keys/id_rsa.pub") {
         log.Println("Using generate ssh key pair. Public key is:\n")
-        pubkey, err := ioutil.ReadFile("id_rsa.pub")
+        pubkey, err := ioutil.ReadFile("ssh_keys/id_rsa.pub")
         CheckIfError(err)
         fmt.Println(string(pubkey))
     }
@@ -387,11 +388,17 @@ func main() {
     // secured with secret and file blacklisting
     fs := checkSecretThenServe(http.FileServer(fileHidingFileSystem{http.Dir(directory)}))
 
+    // handle being served as a subfolder 
+    basere := regexp.MustCompile("^https?://[^/]+(.+)?")
+    basematch := basere.FindStringSubmatch(baseurl)
+    folder := strings.TrimSuffix(basematch[1],"/")
+
     // handle file serving another 'directory' variable name
-    http.Handle("/"+directory+"/", http.StripPrefix("/"+directory+"/", fs))
+    http.Handle(folder+"/"+directory+"/", http.StripPrefix(folder+"/"+directory+"/", fs))
+    log.Println("Serving files under: " + folder+"/"+directory+"/")
 
     // handle all other HTTP requests 
-	http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
+    http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
 
         // on each request:
         // log
@@ -427,8 +434,13 @@ func main() {
 // URL Router, methods handling different endpoints
 // =================================================
 
+        if folder == "" {
+            folder = "/"
+        }
+        log.Println("Serving under: " + folder)
+
         // handle main request, print main menu script
-        if r.URL.Path == "/" {
+        if r.URL.Path == folder {
 
             // start with shebang
             fmt.Fprint(w,`
@@ -444,6 +456,7 @@ tput clear
 
             // check for secret presence in HTTP header
             client_secret := r.Header.Get("secret")
+            log.Println("Client Secret: " + client_secret)
 
             // if bad secret, print secret prompt
             if client_secret != secret {
@@ -451,7 +464,7 @@ tput clear
 exec 3<>/dev/tty
 printf "secret: "
 read -u 3 -s SECRET
-curl -H"secret:$SECRET" ` + baseurl + " | sh -")
+curl -s -H"secret:$SECRET" ` + baseurl + " | sh -")
                 return
             }
 
@@ -554,6 +567,7 @@ done
         // all other following routes require secret 
         client_secret := r.Header.Get("secret")
         if client_secret != secret {
+                    log.Println("client secret "+client_secret+ " != " + secret + " header secret")
 		    fmt.Fprintf(w, "echo \"Secret not given.\"")
             return
         }
@@ -580,14 +594,14 @@ done
 //        }
 
         // handle synchronization endpoint - pull git repo
-        if r.URL.Path == "/sync" {
+        if r.URL.Path == folder + "sync" {
             gitPull(directory)
             fmt.Fprintf(w, "echo \"Repo synced\"")
             return
         }
 
         // handle update script endpoint
-        if r.URL.Path == "/update" {
+        if r.URL.Path == folder + "update" {
 
             // print case function
             fmt.Fprint(w,"tput clear\n")
