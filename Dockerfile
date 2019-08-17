@@ -27,9 +27,5 @@ FROM alpine
 # Copy our static executable.
 COPY --from=builder /go/bin/dotman /go/bin/dotman
 
-# Create and set ssh known_hosts file location
-ENV SSH_KNOWN_HOSTS=/known_hosts
-RUN touch $SSH_KNOWN_HOSTS
-
 # Run the hello binary.
 ENTRYPOINT ["/go/bin/dotman"]

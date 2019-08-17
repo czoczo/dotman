@@ -19,6 +19,7 @@ import (
     "crypto/x509"
     "path/filepath"
     "golang.org/x/crypto/ssh"
+    "golang.org/x/crypto/ssh/knownhosts"
     "github.com/namsral/flag"
     "gopkg.in/src-d/go-git.v4/plumbing/transport"
     gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
@@ -43,6 +44,7 @@ var port int
 var baseurl string
 // set of characters to assign options to
 var alphabet string
+var ssh_known_hosts string
 
 
 
@@ -321,13 +323,33 @@ func main() {
         os.Exit(2)
     }
 
+    // server config
+    alphabet = "01234567890abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
+    ssh_known_hosts = "ssh_data/known_hosts"
+
+    // available options list
+    foldersMap := make(map[string]string)
+
+
     // check if ssh protocol
-    if isSsh.MatchString(url) && !fileExists(sshkey) {
-        log.Println("SSH Key " + sshkey + " not found. Falling back to generating key pair")
-        err := MakeSSHKeyPair("ssh_data/id_rsa.pub","ssh_data/id_rsa")
+    if isSsh.MatchString(url) {
+        // create ssh_data dir
         os.MkdirAll("ssh_data", os.ModePerm)
-        CheckIfError(err)
-        log.Println("SSH Key pair generated successfully")
+
+        if !fileExists(sshkey) {
+            log.Println("SSH Key " + sshkey + " not found. Falling back to generating key pair")
+            err := MakeSSHKeyPair("ssh_data/id_rsa.pub","ssh_data/id_rsa")
+            CheckIfError(err)
+            log.Println("SSH Key pair generated successfully")
+        }
+
+        if !fileExists(ssh_known_hosts) {
+            log.Println("SSH " + ssh_known_hosts + " file not found.")
+            emptyFile, err := os.Create(ssh_known_hosts)
+            CheckIfError(err)
+            emptyFile.Close()
+            log.Println("SSH known_hosts file successfully")
+        }
     }
 
     // print hello and server configuration
@@ -347,23 +369,29 @@ func main() {
 
     // define ssh or http connection string
 
-    // server config
-    alphabet = "01234567890abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
-
-    // available options list
-    foldersMap := make(map[string]string)
-
     // switch available protocols, and generate auth object
     if strings.HasPrefix(url, "http") {
+        // create auth object for git  connection
         auth = &githttp.BasicAuth {
                 Username: username,
                 Password: password,
         }
     }
     if strings.HasPrefix(url, "ssh") {
+        // read private key
         sshKey, _ := ioutil.ReadFile(sshkey)
         signer, _ := ssh.ParsePrivateKey([]byte(sshKey))
-        auth = &gitssh.PublicKeys{User: "git", Signer: signer}
+
+        // create known_hosts file
+        hostKeyCallback, err := knownhosts.New(ssh_known_hosts)
+        if err != nil {
+            log.Fatal(err)
+        }
+        hostKeyCallbackHelper := gitssh.HostKeyCallbackHelper{HostKeyCallback: hostKeyCallback}
+//        hostKetCallbakHelper.HostKeyCallback = hostKeyCallback
+
+        // create auth object for git  connection
+        auth = &gitssh.PublicKeys{User: "git", Signer: signer, HostKeyCallbackHelper: hostKeyCallbackHelper}
     }
 
     // clone repo locally if not already here
