@@ -1,7 +1,7 @@
 version: '3'
 
 networks:
-  dotmanapp:
+  dotman:
 services:
   dotman:
     build: .
@@ -11,7 +11,6 @@ services:
     ports:
       - "1338:1338"
     volumes:
-      - ./id_rsa:/ida_rsa
-      - ./id_rsa.pub:/ida_rsa.pub
+      - ./ssh_data:/ssh_data
     networks:
-      - dotmanapp
+      - dotman

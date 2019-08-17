@@ -285,7 +285,7 @@ func main() {
     flag.StringVar(&password, "password", "", "used to connect to git repository, when using http protocol")
     flag.StringVar(&directory, "directory", "dotfiles", "endpoint under which to serve files.")
     flag.StringVar(&secret, "secret", "", "used to protect files served by server")
-    flag.StringVar(&sshkey, "sshkey", "ssh_keys/id_rsa", "path to key used to connect git repository when using ssh protocol.")
+    flag.StringVar(&sshkey, "sshkey", "ssh_data/id_rsa", "path to key used to connect git repository when using ssh protocol.")
     flag.IntVar(&port, "port", 1338, "servers listening port")
     flag.StringVar(&baseurl, "baseurl", "http://127.0.0.1:1338", "URL for generating download commands.")
 	flag.Parse()
@@ -294,6 +294,14 @@ func main() {
     isSsh, _ := regexp.Compile("ssh://")
 
     // check url
+    // if url variable not set
+    if url == "" {
+        log.Println("For server to start you must provide git repository URL containing your dotfiles in folders.")
+        log.Println("Use -url switch or URL environment variable.")
+        os.Exit(1)
+    }
+
+    // if url not valid
     re := regexp.MustCompile("(ssh|https?)://(.+)@.+")
     if re.MatchString(url) == false {
         flag.PrintDefaults()
@@ -316,8 +324,8 @@ func main() {
     // check if ssh protocol
     if isSsh.MatchString(url) && !fileExists(sshkey) {
         log.Println("SSH Key " + sshkey + " not found. Falling back to generating key pair")
-        err := MakeSSHKeyPair("ssh_keys/id_rsa.pub","ssh_keys/id_rsa")
-        os.MkdirAll("ssh_keys", os.ModePerm)
+        err := MakeSSHKeyPair("ssh_data/id_rsa.pub","ssh_data/id_rsa")
+        os.MkdirAll("ssh_data", os.ModePerm)
         CheckIfError(err)
         log.Println("SSH Key pair generated successfully")
     }
@@ -330,9 +338,9 @@ func main() {
     log.Println("Download URLs prefix: " + baseurl+"/"+directory)
 
     // if using generated key pair print public key
-    if sshkey == "ssh_keys/id_rsa" && fileExists("ssh_keys/id_rsa.pub") {
+    if sshkey == "ssh_data/id_rsa" && fileExists("ssh_data/id_rsa.pub") {
         log.Println("Using generate ssh key pair. Public key is:\n")
-        pubkey, err := ioutil.ReadFile("ssh_keys/id_rsa.pub")
+        pubkey, err := ioutil.ReadFile("ssh_data/id_rsa.pub")
         CheckIfError(err)
         fmt.Println(string(pubkey))
     }
