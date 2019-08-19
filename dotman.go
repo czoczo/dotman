@@ -346,6 +346,9 @@ func main() {
 
     // extracte remote host address with port
     remoteHost := urlMatch[3]
+    if ! strings.Contains(remoteHost, ":") {
+        remoteHost = remoteHost + ":22"
+    }
 
     // check baseurl
     match, _ := regexp.MatchString("https?://.+",baseurl)
@@ -388,6 +391,7 @@ func main() {
     log.Println("Repository URL: " + url)
     log.Println("GIT username: " + username)
     log.Println("Listening port: " + strconv.Itoa(port))
+	log.Println(sshAccept)
     log.Println("Download URLs prefix: " + baseurl+"/"+directory)
 
     // if using generated key pair print public key
@@ -417,10 +421,12 @@ func main() {
         sshConfig := &ssh.ClientConfig{
             HostKeyCallback: KeyPrint,
         }
-        ssh.Dial("tcp", remoteHost, sshConfig)
+        _, err := ssh.Dial("tcp", remoteHost, sshConfig)
+        CheckIfError(err)
 
         // if accept  scan remote keys
         if sshAccept {
+            log.Println("Adding remote host key...")
             // show remote key
             sshConfig := &ssh.ClientConfig{
                 HostKeyCallback: TrustKey,
