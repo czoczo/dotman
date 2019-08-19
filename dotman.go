@@ -422,8 +422,11 @@ func main() {
             HostKeyCallback: KeyPrint,
         }
         _, err := ssh.Dial("tcp", remoteHost, sshConfig)
-        CheckIfError(err)
+        if err != nil && err != fmt.Errorf("ssh: handshake failed: ssh: unable to authenticate, attempted methods [none], no supported methods remain") {
+            log.Println(err)
+        }
 
+        log.Println("Gonna remote host key...")
         // if accept  scan remote keys
         if sshAccept {
             log.Println("Adding remote host key...")
