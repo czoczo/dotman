@@ -11,6 +11,8 @@ import (
     "log"
     "regexp"
 	"os"
+    "net"
+    "encoding/base64"
     "strings"
     "io/ioutil"
     "crypto/rsa"
@@ -181,6 +183,30 @@ func MakeSSHKeyPair(pubKeyPath, privateKeyPath string) error {
     return ioutil.WriteFile(pubKeyPath, ssh.MarshalAuthorizedKey(pub), 0655)
 }
 
+// print server key
+func KeyPrint(dialAddr string, addr net.Addr, key ssh.PublicKey) error {
+    log.Printf("Remote server key: %s %s %s\n", dialAddr, key.Type(), base64.StdEncoding.EncodeToString(key.Marshal()))
+    return nil
+}
+
+// format server key
+func TrustKey(dialAddr string, addr net.Addr, key ssh.PublicKey) error {
+    line := fmt.Sprintf("%s %s %s\n", dialAddr, key.Type(), base64.StdEncoding.EncodeToString(key.Marshal()))
+    f, err := os.OpenFile(ssh_known_hosts, os.O_APPEND|os.O_WRONLY, 0600)
+    if err != nil {
+        panic(err)
+    }
+
+    defer f.Close()
+
+    if _, err = f.WriteString(line); err != nil {
+        panic(err)
+    }
+    log.Println("Remote host key added to known_hosts file. Exiting.")
+    os.Exit(0)
+    return nil
+}
+
 // fileExists checks if a file exists and is not a directory before we
 // try using it to prevent further errors.
 func fileExists(filename string) bool {
@@ -283,11 +309,13 @@ func main() {
 
     // parse arguments/environment configuration
     var sshkey string
+    var sshAccept bool
     flag.StringVar(&url, "url", "", "git repository to connect to")
     flag.StringVar(&password, "password", "", "used to connect to git repository, when using http protocol")
     flag.StringVar(&directory, "directory", "dotfiles", "endpoint under which to serve files.")
     flag.StringVar(&secret, "secret", "", "used to protect files served by server")
     flag.StringVar(&sshkey, "sshkey", "ssh_data/id_rsa", "path to key used to connect git repository when using ssh protocol.")
+    flag.BoolVar(&sshAccept, "sshaccept", false, "whether to add ssh remote servers key to known hosts file")
     flag.IntVar(&port, "port", 1338, "servers listening port")
     flag.StringVar(&baseurl, "baseurl", "http://127.0.0.1:1338", "URL for generating download commands.")
 	flag.Parse()
@@ -304,7 +332,7 @@ func main() {
     }
 
     // if url not valid
-    re := regexp.MustCompile("(ssh|https?)://(.+)@.+")
+    re := regexp.MustCompile("(ssh|https?)://(.+)@([^/$]+)")
     if re.MatchString(url) == false {
         flag.PrintDefaults()
         fmt.Println()
@@ -313,8 +341,11 @@ func main() {
     }
 
     // extract username
-    unamematch := re.FindStringSubmatch(url)
-    username = unamematch[2]
+    urlMatch := re.FindStringSubmatch(url)
+    username = urlMatch[2]
+
+    // extracte remote host address with port
+    remoteHost := urlMatch[3]
 
     // check baseurl
     match, _ := regexp.MatchString("https?://.+",baseurl)
@@ -381,6 +412,21 @@ func main() {
         // read private key
         sshKey, _ := ioutil.ReadFile(sshkey)
         signer, _ := ssh.ParsePrivateKey([]byte(sshKey))
+
+        // show remote key
+        sshConfig := &ssh.ClientConfig{
+            HostKeyCallback: KeyPrint,
+        }
+        ssh.Dial("tcp", remoteHost, sshConfig)
+
+        // if accept  scan remote keys
+        if sshAccept {
+            // show remote key
+            sshConfig := &ssh.ClientConfig{
+                HostKeyCallback: TrustKey,
+            }
+            ssh.Dial("tcp", remoteHost, sshConfig)
+        }
 
         // create known_hosts file
         hostKeyCallback, err := knownhosts.New(ssh_known_hosts)
