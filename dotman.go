@@ -155,6 +155,15 @@ func gitPull(directory string) {
     fmt.Println(commit)
 }
 
+// checking if file exists and is not a directory
+func fileExists(filename string) bool {
+    info, err := os.Stat(filename)
+    if os.IsNotExist(err) {
+        return false
+    }
+    return !info.IsDir()
+}
+
 // MakeSSHKeyPair make a pair of public and private keys for SSH access.
 // Public key is encoded in the format for inclusion in an OpenSSH authorized_keys file.
 // Private Key generated is PEM encoded
@@ -191,7 +200,25 @@ func KeyPrint(dialAddr string, addr net.Addr, key ssh.PublicKey) error {
 
 // format server key
 func TrustKey(dialAddr string, addr net.Addr, key ssh.PublicKey) error {
+    // format host record line for known_hosts file
     line := fmt.Sprintf("%s %s %s\n", dialAddr, key.Type(), base64.StdEncoding.EncodeToString(key.Marshal()))
+
+    if fileExists(ssh_known_hosts) {
+        b, err := ioutil.ReadFile(ssh_known_hosts)
+        if err != nil {
+            panic(err)
+        }
+        // check if file contains line
+        s := string(b)
+        // //check whether s contains substring text
+        fmt.Println(strings.Contains(s, line))
+        if strings.Contains(s, line) {
+            log.Println("Host " + url + " already added to known_hosts file. Remove -accept flag/environment variable and run again. Exiting.")
+            os.Exit(0)
+        }
+    }
+
+    // add line to file
     f, err := os.OpenFile(ssh_known_hosts, os.O_APPEND|os.O_WRONLY, 0600)
     if err != nil {
         panic(err)
@@ -205,16 +232,6 @@ func TrustKey(dialAddr string, addr net.Addr, key ssh.PublicKey) error {
     log.Println("Remote host key added to known_hosts file. Exiting.")
     os.Exit(0)
     return nil
-}
-
-// fileExists checks if a file exists and is not a directory before we
-// try using it to prevent further errors.
-func fileExists(filename string) bool {
-    info, err := os.Stat(filename)
-    if os.IsNotExist(err) {
-        return false
-    }
-    return !info.IsDir()
 }
 
 // Functions for serving cloned repository files on HTTP
