@@ -109,11 +109,11 @@ func repoOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string, byNa
                 // if not, strip absolute path and filename. Print mkdir commands
                 output := strings.TrimPrefix(path, directory+"/"+val+"/")
                 if filepath.Dir(output) != "." {
-                    fmt.Fprint(w,"             #mkdir -p $HOME/" + filepath.Dir(output)+"\n")
+                    fmt.Fprint(w,"             mkdir -p $HOME/" + filepath.Dir(output)+"\n")
                 }
 
                 // print download commands
-                fmt.Fprint(w,"             #curl -H\"secret:$SECRET\"" + baseurl + "/" + path + "\" > $HOME/" + output+"\n")
+                fmt.Fprint(w,"             curl -H\"secret:$SECRET\"" + baseurl + "/" + path + "\" > $HOME/" + output+"\n")
 
                 // if not present, add option to managed dotfiles list
                 fmt.Fprint(w,"             cat \"$HOME/.dotman/managed\" | grep -q \""+val+"\" || echo \""+val+"\" >> \"$HOME/.dotman/managed\" \n")
