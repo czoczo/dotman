@@ -88,7 +88,7 @@ func repoOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string, byNa
             if byName { index = val }
 
             // print bash condition. If $2 passed, print menu option and return
-            fmt.Fprint(w,"        "+index+")\n            if [ $2 ]; then\n                printf \"\\e[0;32m*\\e[0m)\\e[0;35m %s\\e[0m\" \""+val+"\"\n                return\n            fi\n")
+            fmt.Fprint(w,"        "+index+")\n            if [ \"$2\" ]; then\n                printf \"\\e[0;32m*\\e[0m)\\e[0;35m %s\\e[0m\" \""+val+"\"\n                return\n            fi\n")
 
             // else print download commands
             fmt.Fprint(w,"             echo -e \"Installing \\e[0;35m"+val+"\\e[0m\"\n")
@@ -113,7 +113,7 @@ func repoOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string, byNa
                 }
 
                 // print download commands
-                fmt.Fprint(w,"             curl -H\"secret:$SECRET\"" + baseurl + "/" + path + "\" > $HOME/" + output+"\n")
+                fmt.Fprint(w,"             curl -H\"secret:$SECRET\" \"" + baseurl + "/" + path + "\" > \"$HOME/" + output+"\"\n")
 
                 // if not present, add option to managed dotfiles list
                 fmt.Fprint(w,"             cat \"$HOME/.dotman/managed\" | grep -q \""+val+"\" || echo \""+val+"\" >> \"$HOME/.dotman/managed\" \n")
@@ -375,7 +375,7 @@ func main() {
     }
 
     // server config
-    alphabet = "01234567890abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
+    alphabet = "0123456789abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
     ssh_known_hosts = "ssh_data/known_hosts"
 
     // available options list
@@ -550,7 +550,7 @@ func main() {
 
             // start with shebang
             fmt.Fprint(w,`
-#!/bin/sh)
+#!/bin/sh
 tput clear
 `)
 
@@ -587,10 +587,10 @@ curl -s -H"secret:$SECRET" ` + baseurl + " | sh -")
             nl := ""
 
             // iterate over options
-            for char := range alphabet {
+            for i := 0; i < len(alphabet); i++ {
 
                     // exit if no keys in map anymore
-                    key := string(char)
+                    key := string(alphabet[i])
                     if _, ok := foldersMap[key]; !ok {
                         continue
                     }
