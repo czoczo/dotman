@@ -113,7 +113,9 @@ func repoOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string, byNa
                 }
 
                 // print download commands
-                fmt.Fprint(w,"             curl -H\"secret:$SECRET\" \"" + baseurl + "/" + path + "\" > \"$HOME/" + output+"\"\n")
+                fmt.Fprint(w,"             echo -n \"downloading file - "+output+" : \"\n")
+                fmt.Fprint(w,"             curl -sH\"secret:$SECRET\" \"" + baseurl + "/" + path + "\" > \"$HOME/" + output+"\"\n")
+                fmt.Fprint(w,"             RESULT=$?; [ $RESULT -eq 0 ] && echo -e \"\\e[0;32mok\\e[0m\" || echo -e \"\\e[0;31merror\\e[0m\"\n")
 
                 // if not present, add option to managed dotfiles list
                 fmt.Fprint(w,"             cat \"$HOME/.dotman/managed\" | grep -q \""+val+"\" || echo \""+val+"\" >> \"$HOME/.dotman/managed\" \n")
@@ -408,7 +410,6 @@ func main() {
     log.Println("Repository URL: " + url)
     log.Println("GIT username: " + username)
     log.Println("Listening port: " + strconv.Itoa(port))
-	log.Println(sshAccept)
     log.Println("Download URLs prefix: " + baseurl+"/"+directory)
 
     // if using generated key pair print public key
@@ -549,15 +550,11 @@ func main() {
         if requestPath == folder {
 
             // start with shebang
-            fmt.Fprint(w,`
-#!/bin/sh
+            fmt.Fprint(w,`#!/bin/sh
 tput clear
 `)
-
             // print ASCII logo
             fmt.Fprint(w,"echo -e '"+strings.ReplaceAll(logo,"'","'\"'\"'")+"'\n")
-
-
             fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0;37m\"\n")
 
             // check for secret presence in HTTP header
@@ -577,6 +574,59 @@ curl -s -H"secret:$SECRET" ` + baseurl + " | sh -")
             if len(files) > len(alphabet) {
                 fmt.Fprint(w,"printf \"%2s%s\\n%4s%s\\n%4s%s\\n%4s%s\\n\\n%2s%s\\n\\n\" \"\" \"Congratz - you reached the limit of number of supported folders. Either:\" \"\" \"a) Wait for me to have the same problem someday.\" \"\" \"b) Increase number of unique characters in 'alphabet' variable.\" \"\" \"c) Implement other solution yourself.\" \"\" \"Decide which is the fastes option on your own ;)\"\n")
             }
+            fmt.Fprint(w,"printf \"%2s%s\\n\\n\" \"\" \"Select action:\"\n")
+            fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m\\n\" \"i\" \"install selected dotfiles\" \n")
+            fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m\\n\" \"u\" \"update installed dotfiles\" \n")
+            fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m\\n\" \"s\" \"make dotman pull changes from repository\" \n")
+            fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m\\n\\n\" \"q\" \"exit program\" \n")
+            fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0m\"\n")
+            fmt.Fprint(w,"SECRET=\""+client_secret+"\"\n")
+            fmt.Fprint(w,`
+exec 3<>/dev/tty
+echo ""
+read -u 3 -p "  Chosen option: " opt
+echo "$opt"
+echo ""
+case $opt in
+i)
+    curl -s -H"secret:$SECRET" ` + baseurl + `/install | sh -
+    ;;
+u)
+    curl -s -H"secret:$SECRET" ` + baseurl + `/update | sh -
+    ;;
+s)
+    curl -s -H"secret:$SECRET" ` + baseurl + `/sync | sh -
+    ;;
+q)
+    echo "Quiting"; exit 0
+    ;;
+*)
+    echo "Invalid option, quiting"; exit 1
+    ;;
+esac
+`)
+            return
+        }
+
+
+        // all other following routes require secret 
+        client_secret := r.Header.Get("secret")
+        if client_secret != secret {
+                    log.Println("client secret "+client_secret+ " != " + secret + " header secret")
+		    fmt.Fprintf(w, "echo \"Secret not given.\"")
+            return
+        }
+
+        // handle install endpointm print install menu script
+        if requestPath == folder + "/install" {
+
+            // start with shebang
+            fmt.Fprint(w,`#!/bin/sh
+tput clear
+`)
+            // print ASCII logo
+            fmt.Fprint(w,"echo -e '"+strings.ReplaceAll(logo,"'","'\"'\"'")+"'\n")
+            fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0;37m\"\n")
 
             // print menu
             fmt.Fprint(w,"printf \"%2s%s\\n%2s%s\\e[32m%s\\e[0;37m%s\\n\\n\" \"\" \"Choose dotfiles to be installed.\" \"\" \"Select by typing keys (\" \"green\" \") and confirm with enter.\"\n")
@@ -669,14 +719,6 @@ done
             return
         }
 
-        // all other following routes require secret 
-        client_secret := r.Header.Get("secret")
-        if client_secret != secret {
-                    log.Println("client secret "+client_secret+ " != " + secret + " header secret")
-		    fmt.Fprintf(w, "echo \"Secret not given.\"")
-            return
-        }
-
 //        if commaListRegex.MatchString(requestPath) {
 //            slice := strings.Split(strings.Replace(requestPath,"/","",-1), ",")
 //            var response string
@@ -709,7 +751,7 @@ done
         if requestPath == folder + "/update" {
 
             // print case function
-            fmt.Fprint(w,"tput clear\n")
+//            fmt.Fprint(w,"tput clear\n")
             fmt.Fprint(w,"SECRET=\""+client_secret+"\"\n")
             fmt.Fprint(w,"selectOption() {\n    case \"$1\" in\n")
             repoOptsCasePrint(w, foldersMap, true)
