@@ -566,7 +566,7 @@ tput clear
 exec 3<>/dev/tty
 printf "secret: "
 read -u 3 -s SECRET
-curl -s -H"secret:$SECRET" ` + baseurl + " | sh -")
+curl -s -H"secret:$SECRET" ` + baseurl + " | bash -")
                 return
             }
 
@@ -589,13 +589,13 @@ echo "$opt"
 echo ""
 case $opt in
 i)
-    curl -s -H"secret:$SECRET" ` + baseurl + `/install | sh -
+    curl -s -H"secret:$SECRET" ` + baseurl + `/install | bash -
     ;;
 u)
-    curl -s -H"secret:$SECRET" ` + baseurl + `/update | sh -
+    curl -s -H"secret:$SECRET" ` + baseurl + `/update | bash -
     ;;
 s)
-    curl -s -H"secret:$SECRET" ` + baseurl + `/sync | sh -
+    curl -s -H"secret:$SECRET" ` + baseurl + `/sync | bash -
     ;;
 q)
     echo "Quiting"; exit 0
