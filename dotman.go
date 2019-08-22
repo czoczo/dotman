@@ -550,7 +550,7 @@ func main() {
         if requestPath == folder {
 
             // start with shebang
-            fmt.Fprint(w,`#!/bin/sh
+            fmt.Fprint(w,`#!/bin/bash
 tput clear
 `)
             // print ASCII logo
@@ -621,7 +621,7 @@ esac
         if requestPath == folder + "/install" {
 
             // start with shebang
-            fmt.Fprint(w,`#!/bin/sh
+            fmt.Fprint(w,`#!/bin/bash
 tput clear
 `)
             // print ASCII logo
