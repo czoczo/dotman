@@ -6,27 +6,16 @@ package main
 
 import (
 	"fmt"
-	"net/http"
     "strconv"
     "log"
     "regexp"
 	"os"
-    "net"
-    "encoding/base64"
+	"net/http"
     "strings"
     "io/ioutil"
-    "crypto/rsa"
-    "crypto/rand"
-    "encoding/pem"
-    "crypto/x509"
     "path/filepath"
-    "golang.org/x/crypto/ssh"
-    "golang.org/x/crypto/ssh/knownhosts"
     "github.com/namsral/flag"
     "gopkg.in/src-d/go-git.v4/plumbing/transport"
-    gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
-	git "gopkg.in/src-d/go-git.v4"
-    githttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 )
 
 
@@ -44,37 +33,16 @@ var port int
 // server config
 // URL (e.g. https://exmaple.org:1338/dotfiles) under to create links to resources
 var baseurl string
+
 // set of characters to assign options to
 var alphabet string
 var ssh_known_hosts string
 
-
-
-// Utilities
-// =================================================
-
 // authorization object for git connection
 var auth transport.AuthMethod
 
-// CheckIfError should be used to naively panics if an error is not nil.
-func CheckIfError(err error) {
-	if err == nil {
-		return
-	}
 
-	fmt.Printf("\x1b[31;1m%s\x1b[0m\n", fmt.Sprintf("error: %s", err))
-	os.Exit(1)
-}
 
-// Info should be used to describe the example commands that are about to run.
-func Info(format string, args ...interface{}) {
-	fmt.Printf("\x1b[35;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
-}
-
-// Warning should be used to display a warning
-func Warning(format string, args ...interface{}) {
-	fmt.Printf("\x1b[36;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
-}
 
 // print bash CASE operator body with available dotfiles folders as options.
 // This CASE operator is used to eihter print options for menu, or output command for installing dotfiles
@@ -126,179 +94,6 @@ func repoOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string, byNa
                 log.Println(err)
             }
             fmt.Fprint(w,"             ;;\n")
-    }
-}
-
-// git pull method used to sync shared folder
-func gitPull(directory string) {
-
-    // we instance\iate a new repository targeting the given path (the .git folder)
-    gitr, err := git.PlainOpen(directory)
-    CheckIfError(err)
-
-    // get the working directory for the repository
-    gitw, err := gitr.Worktree()
-    CheckIfError(err)
-
-    // pull the latest changes from the origin remote and merge into the current branch
-    Info("git pull origin")
-    err = gitw.Pull(&git.PullOptions{
-        Auth: auth,
-        RemoteName: "origin",
-    })
-
-    // ... retrieving the branch being pointed by HEAD
-    ref, err := gitr.Head()
-    CheckIfError(err)
-    // ... retrieving the commit object
-    commit, err := gitr.CommitObject(ref.Hash())
-    CheckIfError(err)
-
-    fmt.Println(commit)
-}
-
-// checking if file exists and is not a directory
-func fileExists(filename string) bool {
-    info, err := os.Stat(filename)
-    if os.IsNotExist(err) {
-        return false
-    }
-    return !info.IsDir()
-}
-
-// MakeSSHKeyPair make a pair of public and private keys for SSH access.
-// Public key is encoded in the format for inclusion in an OpenSSH authorized_keys file.
-// Private Key generated is PEM encoded
-func MakeSSHKeyPair(pubKeyPath, privateKeyPath string) error {
-    privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
-    if err != nil {
-        return err
-    }
-
-    // generate and write private key as PEM
-    privateKeyFile, err := os.Create(privateKeyPath)
-    defer privateKeyFile.Close()
-    if err != nil {
-        return err
-    }
-    privateKeyPEM := &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privateKey)}
-    if err := pem.Encode(privateKeyFile, privateKeyPEM); err != nil {
-        return err
-    }
-
-    // generate and write public key
-    pub, err := ssh.NewPublicKey(&privateKey.PublicKey)
-    if err != nil {
-        return err
-    }
-    return ioutil.WriteFile(pubKeyPath, ssh.MarshalAuthorizedKey(pub), 0655)
-}
-
-// print server key
-func KeyPrint(dialAddr string, addr net.Addr, key ssh.PublicKey) error {
-    log.Printf("Remote server key: %s %s %s\n", dialAddr, key.Type(), base64.StdEncoding.EncodeToString(key.Marshal()))
-    return nil
-}
-
-// format server key
-func TrustKey(dialAddr string, addr net.Addr, key ssh.PublicKey) error {
-    // format host record line for known_hosts file
-    line := fmt.Sprintf("%s %s %s\n", dialAddr, key.Type(), base64.StdEncoding.EncodeToString(key.Marshal()))
-
-    if fileExists(ssh_known_hosts) {
-        b, err := ioutil.ReadFile(ssh_known_hosts)
-        if err != nil {
-            panic(err)
-        }
-        // check if file contains line
-        s := string(b)
-        // //check whether s contains substring text
-        fmt.Println(strings.Contains(s, line))
-        if strings.Contains(s, line) {
-            log.Println("Host " + url + " already added to known_hosts file. Remove -accept flag/environment variable and run again. Exiting.")
-            os.Exit(0)
-        }
-    }
-
-    // add line to file
-    f, err := os.OpenFile(ssh_known_hosts, os.O_APPEND|os.O_WRONLY, 0600)
-    if err != nil {
-        panic(err)
-    }
-
-    defer f.Close()
-
-    if _, err = f.WriteString(line); err != nil {
-        panic(err)
-    }
-    log.Println("Remote host key added to known_hosts file. Exiting.")
-    os.Exit(0)
-    return nil
-}
-
-// Functions for serving cloned repository files on HTTP
-// =================================================
-
-// blacklisting some files from being served
-
-// check if path starts with dot or a README.md
-func containsDotFile(name string) bool {
-        if strings.HasPrefix(name, "/.") || name=="/README.md" {
-            return true
-        }
-    return false
-}
-
-// fileHidingFile is the http.File use in fileHidingFileSystem.
-// it is used to wrap the Readdir method of http.File so that we can
-// remove files and directories that are blacklisted from its output.
-type fileHidingFile struct {
-    http.File
-}
-
-// readdir is a wrapper around the Readdir method of the embedded File
-// that filters out all files that start with a period in their name.
-func (f fileHidingFile) Readdir(n int) (fis []os.FileInfo, err error) {
-    files, err := f.File.Readdir(n)
-    for _, file := range files { // filters out the files
-        if !strings.HasPrefix(file.Name(), ".") && file.Name()!="README.md" {
-            fis = append(fis, file)
-        }
-    }
-    return
-}
-
-// fileHidingFileSystem is an http.FileSystem that hides
-// hidden "dot files" from being served.
-type fileHidingFileSystem struct {
-    http.FileSystem
-}
-
-// open is a wrapper around the Open method of the embedded FileSystem
-// that serves a 403 permission error when name has a file or directory
-// with whose name starts with a period in its path.
-func (fs fileHidingFileSystem) Open(name string) (http.File, error) {
-    if containsDotFile(name) { // If dot file, return 403 response
-        return nil, os.ErrPermission
-    }
-
-    file, err := fs.FileSystem.Open(name)
-    if err != nil {
-        return nil, err
-    }
-    return fileHidingFile{file}, err
-}
-
-// Check if secret passed to protect shared dotfiles
-func checkSecretThenServe(h http.Handler) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        client_secret := r.Header.Get("secret")
-        if client_secret != secret {
-            fmt.Fprint(w,"Ups! No secret given.\n")
-            return
-        }
-        // Serve with the actual handler.
-        h.ServeHTTP(w, r)
     }
 }
 
@@ -420,78 +215,14 @@ func main() {
         fmt.Println(string(pubkey))
     }
 
-    // define ssh or http connection string
 
-    // switch available protocols, and generate auth object
-    if strings.HasPrefix(url, "http") {
-        // create auth object for git  connection
-        auth = &githttp.BasicAuth {
-                Username: username,
-                Password: password,
-        }
-    }
-    if strings.HasPrefix(url, "ssh") {
-        // read private key
-        sshKey, _ := ioutil.ReadFile(sshkey)
-        signer, _ := ssh.ParsePrivateKey([]byte(sshKey))
+    // sync file server directory with remote git repository
 
-        // show remote key
-        sshConfig := &ssh.ClientConfig{
-            HostKeyCallback: KeyPrint,
-        }
-        _, err := ssh.Dial("tcp", remoteHost, sshConfig)
-        if err != nil && err != fmt.Errorf("ssh: handshake failed: ssh: unable to authenticate, attempted methods [none], no supported methods remain") {
-            log.Println(err)
-        }
+    // obatin auth object
+    auth = getAuth(url, sshkey, remoteHost, sshAccept)
 
-        log.Println("Gonna remote host key...")
-        // if accept  scan remote keys
-        if sshAccept {
-            log.Println("Adding remote host key...")
-            // show remote key
-            sshConfig := &ssh.ClientConfig{
-                HostKeyCallback: TrustKey,
-            }
-            ssh.Dial("tcp", remoteHost, sshConfig)
-        }
-
-        // create known_hosts file
-        hostKeyCallback, err := knownhosts.New(ssh_known_hosts)
-        if err != nil {
-            log.Fatal(err)
-        }
-        hostKeyCallbackHelper := gitssh.HostKeyCallbackHelper{HostKeyCallback: hostKeyCallback}
-//        hostKetCallbakHelper.HostKeyCallback = hostKeyCallback
-
-        // create auth object for git  connection
-        auth = &gitssh.PublicKeys{User: "git", Signer: signer, HostKeyCallbackHelper: hostKeyCallbackHelper}
-    }
-
-    // clone repo locally if not already here
-    if _, err := os.Stat(directory); os.IsNotExist(err) {
-        // Clone the given repository to the given directory
-        Info("git clone %s %s", url, directory)
-
-        gitr, err := git.PlainClone(directory, false, &git.CloneOptions{
-            Auth: auth,
-            URL:      url,
-            Progress: os.Stdout,
-        })
-
-        CheckIfError(err)
-
-        // ... retrieving the branch being pointed by HEAD
-        ref, err := gitr.Head()
-        CheckIfError(err)
-        // ... retrieving the commit object
-        commit, err := gitr.CommitObject(ref.Hash())
-        CheckIfError(err)
-
-        fmt.Println(commit)
-
-    } else {
-        gitPull(directory)
-    }
+    // do actual sync
+    gitSync(auth, url, directory)
 
     // serve locally cloned repo with dotfiles through HTTP
     // secured with secret and file blacklisting
