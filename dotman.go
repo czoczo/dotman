@@ -176,7 +176,7 @@ func main() {
     ssh_known_hosts = "ssh_data/known_hosts"
 
     // available options list
-    foldersMap := make(map[string]string)
+    var foldersMap map[string]string
 
 
     // check if ssh protocol
@@ -254,28 +254,8 @@ func main() {
         //commaListRegex, _ := regexp.Compile("^/([0-9a-zA-Z]+,?)+$")
         //listRegex, _ := regexp.Compile("^/[0-9a-zA-Z]+$")
 
-
-        // get folder list made of 1st level of folders in reposiotory contining dotfiles
-        files, err := ioutil.ReadDir(directory)
-        if err != nil {
-            log.Fatal(err)
-        }
-
-            // iterate over above list, and assign characters from alphabet to folders in map
-        charCounter := 0
-        for _, f := range files {
-
-                // skip .git and README.md - case insensitive
-                match, _ := regexp.MatchString("(?i)(.git|README.md)", f.Name())
-                if match {
-                    continue
-                }
-
-                // print next alphabet character and mapped folder name
-                foldersMap[string(alphabet[charCounter])] = f.Name()
-                charCounter = charCounter+1
-
-        }
+        // retrive repository folders mapped with alphabet characters
+        foldersMap = getFoldersMap(directory, alphabet)
 
         // handle main request, print main menu script
         if requestPath == folder {
@@ -302,9 +282,6 @@ curl -s -H"secret:$SECRET" ` + baseurl + " | bash -")
             }
 
             // print error if more folders than available alphabet
-            if len(files) > len(alphabet) {
-                fmt.Fprint(w,"printf \"%2s%s\\n%4s%s\\n%4s%s\\n%4s%s\\n\\n%2s%s\\n\\n\" \"\" \"Congratz - you reached the limit of number of supported folders. Either:\" \"\" \"a) Wait for me to have the same problem someday.\" \"\" \"b) Increase number of unique characters in 'alphabet' variable.\" \"\" \"c) Implement other solution yourself.\" \"\" \"Decide which is the fastes option on your own ;)\"\n")
-            }
             fmt.Fprint(w,"printf \"%2s%s\\n\\n\" \"\" \"Select action:\"\n")
             fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m\\n\" \"i\" \"install selected dotfiles\" \n")
             fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m\\n\" \"u\" \"update installed dotfiles\" \n")

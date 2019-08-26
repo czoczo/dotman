@@ -7,6 +7,7 @@ import (
 	"os"
 	"fmt"
     "log"
+    "regexp"
     "strings"
     "io/ioutil"
     "golang.org/x/crypto/ssh"
@@ -153,3 +154,36 @@ func getAuth(url string, sshkey string, remoteHost string, sshAccept bool) trans
     return auth
 }
 
+// return map with folders from the repository assigned to alphabet characters
+func getFoldersMap(directory string, alphabet string) map[string]string {
+    foldersMap := make(map[string]string)
+
+    // get folder list made of 1st level of folders in reposiotory contining dotfiles
+    files, err := ioutil.ReadDir(directory)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // raise error if 
+    if len(files) > len(alphabet) {
+        log.Println("Congratz - you reached the limit of number of supported folders. Either:\n\na) Wait for author to have the same problem someday.\nb) Increase number of unique characters in 'alphabet' variable.\nc) Implement other solution yourself.\n\nDecide which is the fastes option on your own ;)\n\nExiting...")
+        os.Exit(1)
+    }
+
+    // iterate over above list, and assign characters from alphabet to folders in map
+    charCounter := 0
+    for _, f := range files {
+
+            // skip .git and README.md - case insensitive
+            match, _ := regexp.MatchString("(?i)(.git|README.md)", f.Name())
+            if match {
+                continue
+            }
+
+            // print next alphabet character and mapped folder name
+            foldersMap[string(alphabet[charCounter])] = f.Name()
+            charCounter = charCounter+1
+
+    }
+    return foldersMap
+}
