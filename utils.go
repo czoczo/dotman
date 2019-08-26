@@ -18,6 +18,18 @@ import (
     githttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 )
 
+
+// return ASCII logo
+func getLogo() string {
+    return `
+\e[2;35m                $$.  ,$$    $$    $$,   $$
+                $$$,.$$$  ,$$$$.  $$$.  $$
+\e[0;35m          .$$$. \e[2;35m$$'$$'$$ ,$$.,$$. $$'$$.$$
+\e[0;35m          $$$$$ \e[2;35m$$    $$ $$$$$$$$ $$  '$$$
+\e[0;35m          '$$$' \e[2;35m$$    $$ $$    $$ $$   '$$\e[0m
+`
+}
+
 // CheckIfError should be used to naively panics if an error is not nil.
 func CheckIfError(err error) {
 	if err == nil {

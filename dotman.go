@@ -105,21 +105,13 @@ func repoOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string, byNa
 
 func main() {
 
-    // define var for program ascii logo
-    logo := `
-\e[2;35m                $$.  ,$$    $$    $$,   $$
-                $$$,.$$$  ,$$$$.  $$$.  $$
-\e[0;35m          .$$$. \e[2;35m$$'$$'$$ ,$$.,$$. $$'$$.$$
-\e[0;35m          $$$$$ \e[2;35m$$    $$ $$$$$$$$ $$  '$$$
-\e[0;35m          '$$$' \e[2;35m$$    $$ $$    $$ $$   '$$\e[0m
-`
     // hello
     log.Println("Starting \"dot file manager\" aka:")
 
     // print logo (remove colors)
     reg, _ := regexp.Compile("\\\\e\\[[0-9](;[0-9]+)?m")
     //reg, _ = regexp.Compile("\\\\e\\[")
-    log.Println(reg.ReplaceAllString(logo,""))
+    log.Println(reg.ReplaceAllString(getLogo(),""))
 
     // parse arguments/environment configuration
     var sshkey string
@@ -259,63 +251,9 @@ func main() {
 
         // handle main request, print main menu script
         if requestPath == folder {
-
-            // start with shebang
-            fmt.Fprint(w,`#!/bin/bash
-tput clear
-`)
-            // print ASCII logo
-            fmt.Fprint(w,"echo -e '"+strings.ReplaceAll(logo,"'","'\"'\"'")+"'\n")
-            fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0;37m\"\n")
-
-            // check for secret presence in HTTP header
-            client_secret := r.Header.Get("secret")
-
-            // if bad secret, print secret prompt
-            if client_secret != secret {
-                fmt.Fprint(w,`
-exec 3<>/dev/tty
-printf "secret: "
-read -u 3 -s SECRET
-curl -s -H"secret:$SECRET" ` + baseurl + " | bash -")
-                return
-            }
-
-            // print error if more folders than available alphabet
-            fmt.Fprint(w,"printf \"%2s%s\\n\\n\" \"\" \"Select action:\"\n")
-            fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m\\n\" \"i\" \"install selected dotfiles\" \n")
-            fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m\\n\" \"u\" \"update installed dotfiles\" \n")
-            fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m\\n\" \"s\" \"make dotman pull changes from repository\" \n")
-            fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m\\n\\n\" \"q\" \"exit program\" \n")
-            fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0m\"\n")
-            fmt.Fprint(w,"SECRET=\""+client_secret+"\"\n")
-            fmt.Fprint(w,`
-exec 3<>/dev/tty
-echo ""
-read -u 3 -p "  Chosen option: " opt
-echo "$opt"
-echo ""
-case $opt in
-i)
-    curl -s -H"secret:$SECRET" ` + baseurl + `/install | bash -
-    ;;
-u)
-    curl -s -H"secret:$SECRET" ` + baseurl + `/update | bash -
-    ;;
-s)
-    curl -s -H"secret:$SECRET" ` + baseurl + `/sync | bash -
-    ;;
-q)
-    echo "Quiting"; exit 0
-    ;;
-*)
-    echo "Invalid option, quiting"; exit 1
-    ;;
-esac
-`)
+            serveMain(w,r)
             return
         }
-
 
         // all other following routes require secret 
         client_secret := r.Header.Get("secret")
@@ -333,7 +271,7 @@ esac
 tput clear
 `)
             // print ASCII logo
-            fmt.Fprint(w,"echo -e '"+strings.ReplaceAll(logo,"'","'\"'\"'")+"'\n")
+            fmt.Fprint(w,"echo -e '"+strings.ReplaceAll(getLogo(),"'","'\"'\"'")+"'\n")
             fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0;37m\"\n")
 
             // print menu
