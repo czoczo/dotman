@@ -16,7 +16,7 @@ import (
     "path/filepath"
     "github.com/namsral/flag"
     "gopkg.in/src-d/go-git.v4/plumbing/transport"
-    "routes/mainroute"
+    "cz0.cz/czoczo/dotman/routes"
 )
 
 
@@ -252,7 +252,7 @@ func main() {
 
         // handle main request, print main menu script
         if requestPath == folder {
-            serveMain(w,r)
+            routes.ServeMain(w, r, baseurl, secret, getLogo())
             return
         }
 

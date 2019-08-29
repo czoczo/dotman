@@ -2,7 +2,7 @@
 // Main view with menu or secret prompt screen
 // =================================================
 
-package mainroute
+package routes
 
 import (
 	"fmt"
@@ -10,13 +10,13 @@ import (
 	"net/http"
 )
 
-func serveMain(w http.ResponseWriter, r *http.Request) {
+func ServeMain(w http.ResponseWriter, r *http.Request, baseurl string, secret string, logo string) {
             // start with shebang
             fmt.Fprint(w,`#!/bin/bash
 tput clear
 `)
             // print ASCII logo
-            fmt.Fprint(w,"echo -e '"+strings.ReplaceAll(getLogo(),"'","'\"'\"'")+"'\n")
+            fmt.Fprint(w,"echo -e '"+strings.ReplaceAll(logo,"'","'\"'\"'")+"'\n")
             fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0;37m\"\n")
 
             // check for secret presence in HTTP header
