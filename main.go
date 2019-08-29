@@ -13,7 +13,6 @@ import (
 	"net/http"
     "strings"
     "io/ioutil"
-    "path/filepath"
     "github.com/namsral/flag"
     "gopkg.in/src-d/go-git.v4/plumbing/transport"
     "cz0.cz/czoczo/dotman/routes"
@@ -41,63 +40,6 @@ var ssh_known_hosts string
 
 // authorization object for git connection
 var auth transport.AuthMethod
-
-
-
-
-// print bash CASE operator body with available dotfiles folders as options.
-// This CASE operator is used to eihter print options for menu, or output command for installing dotfiles
-func repoOptsCasePrint(w http.ResponseWriter, foldersMap map[string]string, byName bool)  {
-
-    // itertate over available option
-    for key, val := range foldersMap {
-            index := key
-
-            // map either by alphabet char, or folder name
-            if byName { index = val }
-
-            // print bash condition. If $2 passed, print menu option and return
-            fmt.Fprint(w,"        "+index+")\n            if [ \"$2\" ]; then\n                printf \"\\e[0;32m*\\e[0m)\\e[0;35m %s\\e[0m\" \""+val+"\"\n                return\n            fi\n")
-
-            // else print download commands
-            fmt.Fprint(w,"             echo -e \"Installing \\e[0;35m"+val+"\\e[0m\"\n")
-
-            // search folders and add mkdir and download commands
-            // recursive walk thorough the dir
-            err := filepath.Walk(directory+"/"+val,
-                func(path string, info os.FileInfo, err error) error {
-                if err != nil {
-                    return err
-                }
-
-                // skip if not a dir
-                if info.IsDir() {
-                    return nil
-                }
-
-                // if not, strip absolute path and filename. Print mkdir commands
-                output := strings.TrimPrefix(path, directory+"/"+val+"/")
-                if filepath.Dir(output) != "." {
-                    fmt.Fprint(w,"             mkdir -p $HOME/" + filepath.Dir(output)+"\n")
-                }
-
-                // print download commands
-                fmt.Fprint(w,"             echo -n \"downloading file - "+output+" : \"\n")
-                fmt.Fprint(w,"             curl -sH\"secret:$SECRET\" \"" + baseurl + "/" + path + "\" > \"$HOME/" + output+"\"\n")
-                fmt.Fprint(w,"             RESULT=$?; [ $RESULT -eq 0 ] && echo -e \"\\e[0;32mok\\e[0m\" || echo -e \"\\e[0;31merror\\e[0m\"\n")
-
-                // if not present, add option to managed dotfiles list
-                fmt.Fprint(w,"             cat \"$HOME/.dotman/managed\" | grep -q \""+val+"\" || echo \""+val+"\" >> \"$HOME/.dotman/managed\" \n")
-                return nil
-            })
-
-            if err != nil {
-                log.Println(err)
-            }
-            fmt.Fprint(w,"             ;;\n")
-    }
-}
-
 
 
 
@@ -266,103 +208,7 @@ func main() {
 
         // handle install endpointm print install menu script
         if requestPath == folder + "/install" {
-
-            // start with shebang
-            fmt.Fprint(w,`#!/bin/bash
-tput clear
-`)
-            // print ASCII logo
-            fmt.Fprint(w,"echo -e '"+strings.ReplaceAll(getLogo(),"'","'\"'\"'")+"'\n")
-            fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0;37m\"\n")
-
-            // print menu
-            fmt.Fprint(w,"printf \"%2s%s\\n%2s%s\\e[32m%s\\e[0;37m%s\\n\\n\" \"\" \"Choose dotfiles to be installed.\" \"\" \"Select by typing keys (\" \"green\" \") and confirm with enter.\"\n")
-            fmt.Fprint(w,"echo -e \"\\e[97m-========================================================-\\n\\e[0m\"\n")
-
-            // vars for iterating available options
-            count := 0
-            nl := ""
-
-            // iterate over options
-            for i := 0; i < len(alphabet); i++ {
-
-                    // exit if no keys in map anymore
-                    key := string(alphabet[i])
-                    if _, ok := foldersMap[key]; !ok {
-                        continue
-                    }
-
-                    // handle deviding menu in 3 columns
-                    count += 1
-                    if count % 3 == 0 {
-                        nl = "\\n"
-                    }
-
-                    // print menu option
-                    fmt.Fprint(w,"printf \"  \\e[32m%s\\e[0m)\\e[35m %-15s\\e[0m"+nl+"\" \""+key+"\" \""+foldersMap[key]+"\" \n")
-                    nl = ""
-            }
-
-            // touch list of dotfiles to be update
-            fmt.Fprint(w,"mkdir -p \"$HOME/.dotman\"; touch \"$HOME/.dotman/managed\"\n")
-
-            // print case function
-            fmt.Fprint(w,"SECRET=\""+client_secret+"\"\n")
-            fmt.Fprint(w,"selectOption() {\n    case \"$1\" in\n")
-            repoOptsCasePrint(w, foldersMap, false)
-
-            // close case 
-            fmt.Fprint(w,"    esac\n}\n")
-
-            // print variable with available options for cross checking input
-            keys := make([]string, 0)
-            for key := range foldersMap {
-                keys = append(keys, key)
-            }
-            fmt.Fprint(w,"OPTS=\""+strings.Join(keys, "")+"\"\n")
-
-            // print rest of script
-            fmt.Fprint(w,`
-exec 3<>/dev/tty
-echo ""
-read -u 3 -p "  Chosen options: " words
-echo ""
-if [ -z $words ]; then
-    echo -e "\e[0;37mNothing to do... exiting."
-    exit 0
-fi
-echo -e "\e[97m-========================================================-\e[0;37m"
-printf "%2s\n" "" "Follwing dotfiles will be installed in order:"
-COMMA=""
-for CHAR in $(echo "$words" | fold -w1); do
-    test "${OPTS#*$CHAR}" != "$OPTS" || continue
-    echo -en "$COMMA" 
-    selectOption $CHAR False
-    COMMA=", "
-done
-
-if [ "$COMMA" == "" ]; then
-    echo "Nothing to do... exiting."
-    exit 0
-fi
-
-printf "\n%2s" "" "Proceed? [y/N]"
-read -u 3 -n 1 -r
-echo ""
-if [[ ! $REPLY =~ ^[Yy]$ ]]
-then
-    exit 0
-fi
-
-echo -e "\\n\e[97m-========================================================-\e[0m\n"
-echo "Installing dotfiles:"
-
-for CHAR in $(echo "$words" | fold -w1); do
-    test "${OPTS#*$CHAR}" != "$OPTS" || continue
-    selectOption $CHAR 
-done
-            `)
-
+            routes.ServeInstall(w, r, baseurl, client_secret, getLogo(), directory, alphabet, foldersMap)
             return
         }
 
@@ -396,25 +242,7 @@ done
 
         // handle update script endpoint
         if requestPath == folder + "/update" {
-
-            // print case function
-//            fmt.Fprint(w,"tput clear\n")
-            fmt.Fprint(w,"SECRET=\""+client_secret+"\"\n")
-            fmt.Fprint(w,"selectOption() {\n    case \"$1\" in\n")
-            repoOptsCasePrint(w, foldersMap, true)
-
-            // close case 
-            fmt.Fprint(w,"    esac\n}\n")
-            fmt.Fprint(w,`
-if [ ! -f "$HOME/.dotman/managed" ]; then 
-    echo "It appears, you don't manage any dotfiles using dotman. Exiting."
-    exit 1
-fi
-
-for NAME in $(cat "$HOME/.dotman/managed"); do
-    selectOption $NAME 
-done
-            `)
+            routes.ServeUpdate(w, r, baseurl, client_secret, getLogo(), directory, alphabet, foldersMap)
             return
         }
 
