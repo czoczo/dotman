@@ -2,7 +2,7 @@
 // Main view with menu or secret prompt screen
 // =================================================
 
-package main
+package mainroute
 
 import (
 	"fmt"
