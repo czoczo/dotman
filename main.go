@@ -168,15 +168,15 @@ func main() {
     basematch := basere.FindStringSubmatch(baseurl)
     folder := strings.TrimSuffix(basematch[1],"/")
 
-// URL Router, methods handling different endpoints
+// URL Router, methods for handling endpoints
 // =================================================
 
     // handle fixed routes first
-    // handle file serving another 'directory' variable name
+    // handle file serving under 'directory' variable name
     http.Handle(folder+"/"+directory+"/", http.StripPrefix(folder+"/"+directory+"/", fs))
     log.Println("Serving files under: " + folder+"/"+directory+"/")
 
-    // handle all other HTTP requests with dynamic URLs and headers
+    // handle all other HTTP requests 
     http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
 
         // on each request:
@@ -184,10 +184,6 @@ func main() {
 		log.Println(r.RemoteAddr + ": " + r.RequestURI)
         // strip backslash at the end of request
         requestPath := strings.TrimSuffix(r.URL.Path,"/")
-
-        // regex for options as URL, not used as for now
-        //commaListRegex, _ := regexp.Compile("^/([0-9a-zA-Z]+,?)+$")
-        //listRegex, _ := regexp.Compile("^/[0-9a-zA-Z]+$")
 
         // retrive repository folders mapped with alphabet characters
         foldersMap = getFoldersMap(directory, alphabet)
@@ -198,11 +194,11 @@ func main() {
             return
         }
 
-        // all other following routes require secret 
+        // all other futher routes require secret 
         client_secret := r.Header.Get("secret")
         if client_secret != secret {
-                    log.Println("client secret "+client_secret+ " != " + secret + " header secret")
-		    fmt.Fprintf(w, "echo \"Secret not given.\"")
+            log.Println("Wrong secret, or not given.")
+		    fmt.Fprintf(w, "echo \"Wrong secret, or not given.\"")
             return
         }
 
@@ -211,27 +207,6 @@ func main() {
             views.ServeInstall(w, r, baseurl, client_secret, getLogo(), directory, alphabet, foldersMap)
             return
         }
-
-//        if commaListRegex.MatchString(requestPath) {
-//            slice := strings.Split(strings.Replace(requestPath,"/","",-1), ",")
-//            var response string
-//            for _, num := range slice {
-//                response = response +" | "+ num
-//            }
-//		    fmt.Fprintf(w, response)
-//            return
-//        }
-
-//        // if URI with chosen options print download script
-//        if listRegex.MatchString(requestPath) {
-//            choice := strings.Replace(requestPath,"/","",-1)
-//            var response string
-//            for _, char :=  range choice {
-//                response = response +" | "+ string(char)
-//            }
-//		    fmt.Fprintf(w, response)
-//            return
-//        }
 
         // handle synchronization endpoint - pull git repo
         if requestPath == folder + "/sync" {
@@ -243,6 +218,18 @@ func main() {
         // handle update script endpoint
         if requestPath == folder + "/update" {
             views.ServeUpdate(w, r, baseurl, client_secret, directory, foldersMap)
+            return
+        }
+
+        // handle auto update enable endpoint
+        if requestPath == folder + "/autoenable" {
+            views.ServeSetAuto(w, r, baseurl, client_secret, true)
+            return
+        }
+
+        // handle auto update disable endpoint
+        if requestPath == folder + "/autodisable" {
+            views.ServeSetAuto(w, r, baseurl, client_secret, false)
             return
         }
 

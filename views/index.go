@@ -52,13 +52,24 @@ curl -s -H"secret:$SECRET" {{.BaseURL}} | bash -
 var indexView = `
 #!/bin/bash
 tput clear
+
+SECRET="{{ .ClientSecret }}"
+SCRIPT_PATH="curl -s -H\"secret:$SECRET\" {{.BaseURL}}/update | bash -"
+crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH" && AUTOUPDATESTATUS="Enabled" || AUTOUPDATESTATUS="Disabled"
+
 echo -e '{{.Logo}}'
-echo -e "\e[97m-========================================================-\n\e[0;37m"
-printf "%2s%s\n\n" "" "Select action:"
+echo -e "\e[97m-========================================================-\n"
+printf "\e[0;37m%2s%s " "" "Info: "
+printf " \e[35m%s\e[0m: \e[32m%s\e[0m" "managed items" "$(cat ~/.dotman/managed 2>/dev/null | wc -l)"
+printf " \e[0m | "
+printf " \e[35m%s\e[0m: \e[32m%s\e[0m\n\n" "auto update" "$AUTOUPDATESTATUS"
+printf "\e[0;37m%2s%s\n\n" "" "Select action:"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "i" "install selected dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "l" "list installed dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "u" "update installed dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "s" "make dotman pull changes from repository"
+printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "e" "enable auto update dotfiles (requires cron)"
+printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "d" "disable auto update dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n\n" "q" "exit program"
 echo -e "\e[97m-========================================================-\n\e[0m"
 SECRET="{{.ClientSecret}}"
@@ -84,6 +95,12 @@ curl -s -H"secret:$SECRET" {{.BaseURL}}/update | bash -
 ;;
 s)
 curl -s -H"secret:$SECRET" {{.BaseURL}}/sync | bash -
+;;
+e)
+curl -s -H"secret:$SECRET" {{.BaseURL}}/autoenable | bash -
+;;
+d)
+curl -s -H"secret:$SECRET" {{.BaseURL}}/autodisable | bash -
 ;;
 q)
 echo "Quiting"; exit 0

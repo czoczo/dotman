@@ -110,7 +110,6 @@ func getAuth(url string, sshkey string, remoteHost string, sshAccept bool) trans
             log.Println(err)
         }
 
-        log.Println("Gonna remote host key...")
         // if accept  scan remote keys
         if sshAccept {
             log.Println("Adding remote host key...")
