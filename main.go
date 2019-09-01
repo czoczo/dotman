@@ -189,6 +189,7 @@ func main() {
         foldersMap = getFoldersMap(directory, alphabet)
 
         // handle main request, print main menu script
+        log.Println(requestPath + " == " + folder )
         if requestPath == folder {
             views.ServeMain(w, r, baseurl, secret, getLogo())
             return
