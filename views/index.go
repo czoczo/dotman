@@ -56,6 +56,7 @@ echo -e '{{.Logo}}'
 echo -e "\e[97m-========================================================-\n\e[0;37m"
 printf "%2s%s\n\n" "" "Select action:"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "i" "install selected dotfiles"
+printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "l" "list installed dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "u" "update installed dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "s" "make dotman pull changes from repository"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n\n" "q" "exit program"
@@ -70,6 +71,9 @@ echo ""
 case $opt in
 i)
 curl -s -H"secret:$SECRET" {{.BaseURL}}/install | bash -
+;;
+l)
+[  -f ~/.dotman/managed ] && cat ~/.dotman/managed || echo "It appears no dotfiles are managed by dotman yet."
 ;;
 u)
 curl -s -H"secret:$SECRET" {{.BaseURL}}/update | bash -
