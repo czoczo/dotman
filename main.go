@@ -15,7 +15,7 @@ import (
     "io/ioutil"
     "github.com/namsral/flag"
     "gopkg.in/src-d/go-git.v4/plumbing/transport"
-    "cz0.cz/czoczo/dotman/routes"
+    "cz0.cz/czoczo/dotman/views"
 )
 
 
@@ -194,7 +194,7 @@ func main() {
 
         // handle main request, print main menu script
         if requestPath == folder {
-            routes.ServeMain(w, r, baseurl, secret, getLogo())
+            views.ServeMain(w, r, baseurl, secret, getLogo())
             return
         }
 
@@ -208,7 +208,7 @@ func main() {
 
         // handle install endpointm print install menu script
         if requestPath == folder + "/install" {
-            routes.ServeInstall(w, r, baseurl, client_secret, getLogo(), directory, alphabet, foldersMap)
+            views.ServeInstall(w, r, baseurl, client_secret, getLogo(), directory, alphabet, foldersMap)
             return
         }
 
@@ -242,7 +242,7 @@ func main() {
 
         // handle update script endpoint
         if requestPath == folder + "/update" {
-            routes.ServeUpdate(w, r, baseurl, client_secret, getLogo(), directory, alphabet, foldersMap)
+            views.ServeUpdate(w, r, baseurl, client_secret, directory, foldersMap)
             return
         }
 
