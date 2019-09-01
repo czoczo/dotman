@@ -63,17 +63,21 @@ printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n\n" "q" "exit program"
 echo -e "\e[97m-========================================================-\n\e[0m"
 SECRET="{{.ClientSecret}}"
 
+
 exec 3<>/dev/tty
 echo ""
-read -u 3 -p "  Chosen option: " opt
-echo "$opt"
+read -u 3 -n 1 -r -p "  Chosen option: " opt
 echo ""
 case $opt in
 i)
 curl -s -H"secret:$SECRET" {{.BaseURL}}/install | bash -
 ;;
 l)
-[  -f ~/.dotman/managed ] && cat ~/.dotman/managed || echo "It appears no dotfiles are managed by dotman yet."
+if [  -f ~/.dotman/managed ]; then
+  cat ~/.dotman/managed
+else
+  echo "It appears no dotfiles are managed by dotman yet."
+fi
 ;;
 u)
 curl -s -H"secret:$SECRET" {{.BaseURL}}/update | bash -
@@ -85,7 +89,11 @@ q)
 echo "Quiting"; exit 0
 ;;
 *)
-echo "Invalid option, quiting"; exit 1
+echo "Invalid option. Try again."
+
 ;;
 esac
+echo ''
+read -u 3 -n 1 -s -r -p "Press any key to continue"
+curl -s -H"secret:$SECRET" {{.BaseURL}} | bash -
 `

@@ -180,10 +180,10 @@ func main() {
     http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
 
         // on each request:
+        // log
+		log.Println(r.RemoteAddr + ": " + r.RequestURI)
         // strip backslash at the end of request
         requestPath := strings.TrimSuffix(r.URL.Path,"/")
-        // log
-		log.Println(requestPath)
 
         // regex for options as URL, not used as for now
         //commaListRegex, _ := regexp.Compile("^/([0-9a-zA-Z]+,?)+$")
