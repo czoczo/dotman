@@ -198,7 +198,7 @@ func main() {
         client_secret := r.Header.Get("secret")
         if client_secret != secret {
             log.Println("Wrong secret, or not given.")
-		    fmt.Fprintf(w, "echo \"Wrong secret, or not given.\"")
+		    fmt.Fprintf(w, "echo \"  Wrong secret, or not given.\"")
             return
         }
 
@@ -211,7 +211,7 @@ func main() {
         // handle synchronization endpoint - pull git repo
         if requestPath == folder + "/sync" {
             gitPull(directory)
-            fmt.Fprintf(w, "echo \"Repo synced\"")
+            fmt.Fprintf(w, "echo \"  Repo synced\"")
             return
         }
 

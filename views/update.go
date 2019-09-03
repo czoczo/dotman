@@ -37,7 +37,7 @@ selectOption() {
     esac
 }
 if [ ! -f "$HOME/.dotman/managed" ]; then 
-echo "It appears, you don't manage any dotfiles using dotman. Exiting."
+echo "  It appears, you don't manage any dotfiles using dotman. Exiting."
 exit 1
 fi
 

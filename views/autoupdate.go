@@ -34,15 +34,15 @@ SCRIPT_PATH="curl -s -H\"secret:$SECRET\" {{.BaseURL}}/update | bash -"
 
 enableCron() {
       # check if crontab present
-      command -v crontab >/dev/null 2>&1 || ( echo "Error: couldn't find crontab. Auto update feature unsupported.")
+      command -v crontab >/dev/null 2>&1 || ( echo "  Error: couldn't find crontab. Auto update feature unsupported.")
     
       # prompt about adding updates to crontab
-      printf "\n%2s" "" "This will add curl request \"{{.BaseURL}}/update | bash -\" to crontab. Proceed? [y/N]"
+      echo -e "\n  This will add curl request \"{{.BaseURL}}/update | bash -\" to crontab. Proceed? [y/N]"
       read -u 3 -n 1 -r
       echo ""
       if [[ ! $REPLY =~ ^[Yy]$ ]]
       then
-      echo "Aborted."
+      echo "  Aborted."
       exit 0
       fi
      
@@ -52,10 +52,10 @@ enableCron() {
       # Check if script is already in crontab, if not add itself
       CRON_ENTRY="$MINS * * * * $SCRIPT_PATH"
       if crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH"; then
-        echo "Auto update already enabled"
+        echo "  Auto update already enabled"
       else
-        ( crontab -l 2>/dev/null; echo "$CRON_ENTRY" ) | crontab -
-        echo -e "Auto update enabled."
+        ( crontab -l 2>/dev/null; echo "  $CRON_ENTRY" ) | crontab -
+        echo -e "  Auto update enabled."
       fi 
       crontab -l 2>/dev/null | grep "$SCRIPT_PATH"
       exit 0
@@ -63,20 +63,20 @@ enableCron() {
 
 disableCron() {
       # prompt about adding updates to crontab
-      printf "\n%2s" "" "This will delete curl auto update request from crontab. Proceed? [y/N]"
+      echo -e "\n  This will delete curl auto update request from crontab. Proceed? [y/N]"
       read -u 3 -n 1 -r
       echo ""
       if [[ ! $REPLY =~ ^[Yy]$ ]]
       then
-      echo "Aborted."
+      echo "  Aborted."
       exit 0
       fi
 
       if crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH"; then
           ( crontab -l 2>/dev/null | grep -v "$SCRIPT_PATH"; ) | crontab -
-          echo -e "Removed dotman auto update from crontab."
+          echo -e "  Removed dotman auto update from crontab."
       else
-        echo -e "There is no dotman auto update entry in crontab. Aborting."
+        echo -e "  There is no dotman auto update entry in crontab. Aborting."
       fi
       exit 0
 }

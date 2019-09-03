@@ -64,7 +64,7 @@ printf " \e[35m%s\e[0m: \e[32m%s\e[0m" "managed items" "$(cat ~/.dotman/managed 
 printf " \e[0m | "
 printf " \e[35m%s\e[0m: \e[32m%s\e[0m\n\n" "auto update" "$AUTOUPDATESTATUS"
 printf "\e[0;37m%2s%s\n\n" "" "Select action:"
-printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "i" "install selected dotfiles"
+printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "i" "select and install dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "l" "list installed dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "u" "update installed dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "s" "make dotman pull changes from repository"
@@ -85,9 +85,11 @@ curl -s -H"secret:$SECRET" {{.BaseURL}}/install | bash -
 ;;
 l)
 if [  -f ~/.dotman/managed ]; then
+  echo -e "\e[35m"
   cat ~/.dotman/managed
+  echo -e "\e[0m"
 else
-  echo "It appears no dotfiles are managed by dotman yet."
+  echo "\n  It appears no dotfiles are managed by dotman yet."
 fi
 ;;
 u)
@@ -103,14 +105,13 @@ d)
 curl -s -H"secret:$SECRET" {{.BaseURL}}/autodisable | bash -
 ;;
 q)
-echo "Quiting"; exit 0
+echo -e "\n  Quiting"; exit 0
 ;;
 *)
-echo "Invalid option. Try again."
-
+echo -e "\n  Invalid option. Try again."
 ;;
 esac
 echo ''
-read -u 3 -n 1 -s -r -p "Press any key to continue"
+read -u 3 -n 1 -s -r -p "  Press any key to continue"
 curl -s -H"secret:$SECRET" {{.BaseURL}} | bash -
 `
