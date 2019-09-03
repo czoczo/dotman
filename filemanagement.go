@@ -106,7 +106,9 @@ func getAuth(url string, sshkey string, remoteHost string, sshAccept bool) trans
             HostKeyCallback: KeyPrint,
         }
         _, err := ssh.Dial("tcp", remoteHost, sshConfig)
-        if err != nil && err != fmt.Errorf("ssh: handshake failed: ssh: unable to authenticate, attempted methods [none], no supported methods remain") {
+
+        // God, forgive me, for I have sinned. Badly. Dirty, very dirty... workaround of unexpected error - didn't have time to debug this.
+        if err != nil && ! strings.Contains(err.Error(), "unable to authenticate, attempted methods [none], no supported methods remain") {
             log.Println(err)
         }
 

@@ -28,7 +28,7 @@ func repoOptsCasePrint(foldersMap map[string]string, byName bool, directory stri
             result = result + "        "+index+")\n            if [ \"$2\" ]; then\n                printf \"\\e[0;32m*\\e[0m)\\e[0;35m %s\\e[0m\" \""+val+"\"\n                return\n            fi\n"
 
             // else print download commands
-            result = result + "             echo -e \"Installing \\e[0;35m"+val+"\\e[0m\"\n"
+            result = result + "             echo -e \"\n  Installing \\e[0;35m"+val+"\\e[0m\"\n"
 
             // search folders and add mkdir and download commands
             // recursive walk thorough the dir
@@ -50,7 +50,7 @@ func repoOptsCasePrint(foldersMap map[string]string, byName bool, directory stri
                 }
 
                 // print download commands
-                result = result + "             echo -n \"downloading file - "+output+" : \"\n"
+                result = result + "             echo -n \"  downloading file - "+output+" : \"\n"
                 result = result + "             curl -sH\"secret:$SECRET\" \"" + baseurl + "/" + path + "\" > \"$HOME/" + output+"\"\n"
                 result = result + "             RESULT=$?; [ $RESULT -eq 0 ] && echo -e \"\\e[0;32mok\\e[0m\" || echo -e \"\\e[0;31merror\\e[0m\"\n"
 

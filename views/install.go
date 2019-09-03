@@ -100,11 +100,11 @@ echo ""
 read -u 3 -p "  Chosen options: " words
 echo ""
 if [ -z $words ]; then
-echo -e "\e[0;37mNothing to do... exiting."
+echo -e "  Nothing to do... exiting."
 exit 0
 fi
-echo -e "\e[97m-========================================================-\e[0;37m"
-printf "%2s\n" "" "Follwing dotfiles will be installed in order:"
+echo -e "\e[97m-========================================================-"
+echo -ne "\n  Follwing dotfiles will be installed in order:\n  "
 COMMA=""
 for CHAR in $(echo "$words" | fold -w1); do
 test "${OPTS#*$CHAR}" != "$OPTS" || continue
@@ -114,20 +114,21 @@ COMMA=", "
 done
 
 if [ "$COMMA" == "" ]; then
-echo "Nothing to do... exiting."
+echo "\n  Nothing to do... exiting."
 exit 0
 fi
 
-printf "\n%2s" "" "Proceed? [y/N]"
+echo -ne  "\n\n  Proceed? [y/N]"
 read -u 3 -n 1 -r
 echo ""
 if [[ ! $REPLY =~ ^[Yy]$ ]]
 then
+echo "  Aborted."
 exit 0
 fi
 
 echo -e "\\n\e[97m-========================================================-\e[0m\n"
-echo "Installing dotfiles:"
+echo "  Installing dotfiles:"
 
 for CHAR in $(echo "$words" | fold -w1); do
 test "${OPTS#*$CHAR}" != "$OPTS" || continue
