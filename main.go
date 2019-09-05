@@ -36,6 +36,9 @@ var baseurl string
 
 // set of characters to assign options to
 var alphabet string
+// tags map
+var tags map[string]string
+
 var ssh_known_hosts string
 
 // authorization object for git connection
