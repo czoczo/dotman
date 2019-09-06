@@ -162,6 +162,9 @@ func main() {
     // do actual sync
     gitSync(auth, url, directory)
 
+    // populate tags
+    populateTagsMap()
+
     // serve locally cloned repo with dotfiles through HTTP
     // secured with secret and file blacklisting
     fs := checkSecretThenServe(http.FileServer(fileHidingFileSystem{http.Dir(directory)}))
@@ -215,6 +218,8 @@ func main() {
         if requestPath == folder + "/sync" {
             gitPull(directory)
             fmt.Fprintf(w, "echo \"  Repo synced\"")
+            // populate tags
+            populateTagsMap()
             return
         }
 
