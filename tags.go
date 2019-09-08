@@ -5,7 +5,7 @@ package main
 
 import (
     "gopkg.in/yaml.v2"
-	"fmt"
+//	"fmt"
     "log"
     "io/ioutil"
     "path/filepath"
@@ -14,6 +14,8 @@ import (
 type TagsData struct {
     Tags map[string][]string
 }
+
+var tagsData TagsData
 
 func populateTagsMap() {
     tagsFile := directory + "/tags.yaml"
@@ -30,8 +32,6 @@ func populateTagsMap() {
         log.Println("tags.yaml: error reading file. skipping populating tags")
         return
     }
-
-    var tagsData TagsData
 
     err = yaml.Unmarshal(yamlFile, &tagsData)
         if err != nil {

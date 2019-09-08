@@ -200,6 +200,13 @@ func main() {
             return
         }
 
+        // handle tags endpoint
+        commaListRegex, _ := regexp.Compile("^/t/([0-9a-zA-Z]+,?)+$")
+        if commaListRegex.MatchString(requestPath) {
+            views.ServeTags(w, r, baseurl, secret, getLogo(), directory, foldersMap, tagsData.Tags)
+            return
+        }
+
         // all other futher routes require secret 
         client_secret := r.Header.Get("secret")
         if client_secret != secret {
@@ -223,6 +230,17 @@ func main() {
             return
         }
 
+        // handle tags list
+        if requestPath == folder + "/tagslist" {
+            fmt.Fprintf(w, "echo -e \"\\n  Available tags:\\n\"\n")
+            for key, val := range tagsData.Tags {
+                packages := strings.Join(val[:],`\e[0m, \e[35m`)
+                fmt.Fprintf(w, `echo -e "  \e[32m`+key+`\e[0m:\e[35m `+packages+" \\e[0m\"\n")
+            }
+            fmt.Fprintf(w, "echo -e \"\\n  Usage: \\n\"\n")
+            return
+        }
+
         // handle update script endpoint
         if requestPath == folder + "/update" {
             views.ServeUpdate(w, r, baseurl, client_secret, directory, foldersMap)
@@ -240,6 +258,8 @@ func main() {
             views.ServeSetAuto(w, r, baseurl, client_secret, false)
             return
         }
+
+
 
         // if none above catched, return 404
         w.WriteHeader(http.StatusNotFound)
