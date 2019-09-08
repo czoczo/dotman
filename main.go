@@ -162,8 +162,11 @@ func main() {
     // do actual sync
     gitSync(auth, url, directory)
 
+    // retrive repository folders mapped with alphabet characters
+    foldersMap = getFoldersMap(directory, alphabet)
+
     // populate tags
-    populateTagsMap()
+    populateTagsMap(foldersMap)
 
     // serve locally cloned repo with dotfiles through HTTP
     // secured with secret and file blacklisting
@@ -190,9 +193,6 @@ func main() {
 		log.Println(r.RemoteAddr + ": " + r.RequestURI)
         // strip backslash at the end of request
         requestPath := strings.TrimSuffix(r.URL.Path,"/")
-
-        // retrive repository folders mapped with alphabet characters
-        foldersMap = getFoldersMap(directory, alphabet)
 
         // handle main request, print main menu script
         if requestPath == folder {
@@ -226,7 +226,7 @@ func main() {
             gitPull(directory)
             fmt.Fprintf(w, "echo \"  Repo synced\"")
             // populate tags
-            populateTagsMap()
+            populateTagsMap(foldersMap)
             return
         }
 

@@ -17,7 +17,7 @@ type TagsData struct {
 
 var tagsData TagsData
 
-func populateTagsMap() {
+func populateTagsMap(foldersMap map[string]string) {
     tagsFile := directory + "/tags.yaml"
 
     if ! fileExists(tagsFile) {
@@ -45,5 +45,10 @@ func populateTagsMap() {
     for tagkey, tagval := range tagsData.Tags {
         log.Println(tagkey + ",")
         log.Println(tagval)
+        for _, pack := range tagval {
+            if val, ok := foldersMap[pack]; ! ok {
+                log.Println("Warning! Package " + val + " not found! Skipping.")
+            }
+        }
     }
 }
