@@ -237,7 +237,7 @@ func main() {
                 packages := strings.Join(val[:],`\e[0m, \e[35m`)
                 fmt.Fprintf(w, `echo -e "  \e[32m`+key+`\e[0m:\e[35m `+packages+" \\e[0m\"\n")
             }
-            fmt.Fprintf(w, "echo -e \"\\n  Usage: \\n\"\n")
+            fmt.Fprintf(w, "echo -e \"\\n  Toinstall packages use: "+baseurl+"/t/\\e[32mtagname\\e[0m\\n\"\n")
             return
         }
 

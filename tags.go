@@ -6,6 +6,7 @@ package main
 import (
     "gopkg.in/yaml.v2"
 //	"fmt"
+    "strings"
     "log"
     "io/ioutil"
     "path/filepath"
@@ -39,16 +40,40 @@ func populateTagsMap(foldersMap map[string]string) {
         return
     }
 
-    //DEBUG fmt.Printf("Value: %#v\n", tagsData)
+    // make empty value map with available packages as keys
+    availablePackages := make(map[string]struct{})
+    for _, val := range foldersMap {
+        availablePackages[val] = struct{}{}
+    }
 
     // show loaded tags
+    log.Println("Loading tags from tags.yaml file...")
     for tagkey, tagval := range tagsData.Tags {
-        log.Println(tagkey + ",")
-        log.Println(tagval)
+
+        // print tag
+        log.Println(tagkey + ": " + strings.Join(tagval,", "))
+
+        // find and delete not found packages
+
+        // make temporary list with validated packages
+        tempList := make([]string,0)
+
+        // for each element in tag
         for _, pack := range tagval {
-            if val, ok := foldersMap[pack]; ! ok {
-                log.Println("Warning! Package " + val + " not found! Skipping.")
+
+            // check if corespondend package exists
+            if _, ok := availablePackages[pack]; ok {
+                tempList = append(tempList, pack)
+            } else {
+                log.Println("Warning! Package " + pack + " not found! Skipping.")
             }
+        }
+
+        // if no element in validates list delete tag, otherwise reassign validated packages
+        if len(tempList) == 0 {
+            delete(tagsData.Tags, tagkey)
+        } else {
+            tagsData.Tags[tagkey] = tempList
         }
     }
 }

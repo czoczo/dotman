@@ -14,7 +14,7 @@ import (
 
 // check if path starts with dot or a README.md
 func containsDotFile(name string) bool {
-        if strings.HasPrefix(name, "/.") || name=="/README.md" {
+        if strings.HasPrefix(name, "/.") || name=="/README.md" || name=="/tags.yaml" {
             return true
         }
     return false
@@ -32,7 +32,7 @@ type fileHidingFile struct {
 func (f fileHidingFile) Readdir(n int) (fis []os.FileInfo, err error) {
     files, err := f.File.Readdir(n)
     for _, file := range files { // filters out the files
-        if !strings.HasPrefix(file.Name(), ".") && file.Name()!="README.md" {
+        if !strings.HasPrefix(file.Name(), ".") && file.Name()!="README.md" && file.Name()!="tags.yaml" {
             fis = append(fis, file)
         }
     }

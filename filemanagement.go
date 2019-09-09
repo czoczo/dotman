@@ -156,7 +156,7 @@ func getFoldersMap(directory string, alphabet string) map[string]string {
     for _, f := range files {
 
             // skip .git and README.md - case insensitive
-            match, _ := regexp.MatchString("(?i)(.git|README.md)", f.Name())
+            match, _ := regexp.MatchString("(?i)(.git|README.md|tags.yaml)", f.Name())
             if match {
                 continue
             }
