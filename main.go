@@ -34,7 +34,7 @@ var port int
 // URL (e.g. https://exmaple.org:1338/dotfiles) under to create links to resources
 var baseurl string
 
-// set of characters to assign options to
+// set of characters to assign packages to
 var alphabet string
 // tags map
 var tags map[string]string
@@ -113,7 +113,7 @@ func main() {
     alphabet = "0123456789abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
     ssh_known_hosts = "ssh_data/known_hosts"
 
-    // available options list
+    // available packages list
     var foldersMap map[string]string
 
 

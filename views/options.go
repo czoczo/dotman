@@ -13,7 +13,7 @@ import (
 
 // print bash CASE operator body with available dotfiles folders as options.
 // This CASE operator is used to eihter print options for menu, or output command for installing dotfiles
-func repoOptsCasePrint(foldersMap map[string]string, byName bool, directory string, baseurl string ) string {
+func repoPackagesCasePrint(foldersMap map[string]string, byName bool, directory string, baseurl string ) string {
 
     result := ""
 

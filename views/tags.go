@@ -34,8 +34,8 @@ func ServeTags(w http.ResponseWriter, r *http.Request, baseurl string, secret st
         return
     }
 
-    // generate body of bash case with repo options
-    repoOpts := repoOptsCasePrint(foldersMap, true, directory, baseurl)
+    // generate body of bash case with repo packages
+    repoPackages := repoPackagesCasePrint(foldersMap, true, directory, baseurl)
 
     // find packages
     tags := strings.Split(strings.Replace(requestPath,"/t/","",-1), ",")
@@ -48,7 +48,7 @@ func ServeTags(w http.ResponseWriter, r *http.Request, baseurl string, secret st
     }
 
     // build data for template
-    tagsTmplData := TagsInstallData{client_secret, repoOpts, packagesList}
+    tagsTmplData := TagsInstallData{client_secret, repoPackages, packagesList}
 
     // render template
     tmpl, err := template.New("tagsInstall").Parse(tmplTagsInstall)
@@ -59,7 +59,7 @@ func ServeTags(w http.ResponseWriter, r *http.Request, baseurl string, secret st
 
 var tmplTagsInstall = `
 SECRET="{{ .ClientSecret }}"
-selectOption() {
+selectPackage() {
     case "$1" in
     {{ .RepoOpts }}
     esac
@@ -89,7 +89,7 @@ fi
 
 echo -e "\\n\e[97m-========================================================-\e[0m\n"
 for NAME in $PACKAGES; do
-selectOption $NAME 
+selectPackage $NAME 
 done
 `
 

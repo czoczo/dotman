@@ -16,11 +16,11 @@ type UpdateData struct {
 
 func ServeUpdate(w http.ResponseWriter, r *http.Request, baseurl string, client_secret string, directory string, foldersMap map[string]string) {
 
-    // generate body of bash case with repo options
-    repoOpts := repoOptsCasePrint(foldersMap, true, directory, baseurl)
+    // generate body of bash case with repo packages
+    repoPackages := repoPackagesCasePrint(foldersMap, true, directory, baseurl)
 
     // build data for template
-    data := UpdateData{client_secret, repoOpts}
+    data := UpdateData{client_secret, repoPackages}
 
     // render template
     tmpl, err := template.New("update").Parse(tmplUpdate)
@@ -31,7 +31,7 @@ func ServeUpdate(w http.ResponseWriter, r *http.Request, baseurl string, client_
 
 var tmplUpdate = `
 SECRET="{{ .ClientSecret }}"
-selectOption() {
+selectPackage() {
     case "$1" in
     {{ .RepoOpts }}
     esac
@@ -42,6 +42,6 @@ exit 1
 fi
 
 for NAME in $(cat "$HOME/.dotman/managed"); do
-selectOption $NAME 
+selectPackage $NAME 
 done
 `

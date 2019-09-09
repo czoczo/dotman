@@ -36,18 +36,18 @@ func ServeInstall(w http.ResponseWriter, r *http.Request, baseurl string, client
             menuItems[key] = foldersMap[key]
     }
 
-    // print variable with available options for cross checking input
+    // create variable with available options for cross checking input
     keys := make([]string, 0)
     for key := range foldersMap {
         keys = append(keys, key)
     }
     availableOpts := strings.Join(keys, "")
 
-    // generate body of bash case with repo options
-    repoOpts := repoOptsCasePrint(foldersMap, false, directory, baseurl)
+    // generate body of bash case with repo packages
+    repoPackages := repoPackagesCasePrint(foldersMap, false, directory, baseurl)
 
     // build data for template
-    data := InstallData{strings.ReplaceAll(logo,"'","'\"'\"'"), client_secret, menuItems, availableOpts, repoOpts}
+    data := InstallData{strings.ReplaceAll(logo,"'","'\"'\"'"), client_secret, menuItems, availableOpts, repoPackages}
 
     // adding functions for template
     funcMap := template.FuncMap{
@@ -87,7 +87,7 @@ printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m" "{{ $key }} " "{{ $value }}"
 
 mkdir -p "$HOME/.dotman"; touch "$HOME/.dotman/managed"
 SECRET="{{ .ClientSecret }}"
-selectOption() {
+selectPackage() {
     case "$1" in
     {{ .RepoOpts }}
     esac
@@ -97,7 +97,7 @@ OPTS="{{ .AvailableOpts }}"
 
 exec 3<>/dev/tty
 echo ""
-read -u 3 -p "  Chosen options: " words
+read -u 3 -p "  Chosen packages: " words
 echo ""
 if [ -z $words ]; then
 echo -e "  Nothing to do... exiting."
@@ -109,7 +109,7 @@ COMMA=""
 for CHAR in $(echo "$words" | fold -w1); do
 test "${OPTS#*$CHAR}" != "$OPTS" || continue
 echo -en "$COMMA" 
-selectOption $CHAR False
+selectPackage $CHAR False
 COMMA=", "
 done
 
@@ -132,6 +132,6 @@ echo "  Installing dotfiles:"
 
 for CHAR in $(echo "$words" | fold -w1); do
 test "${OPTS#*$CHAR}" != "$OPTS" || continue
-selectOption $CHAR 
+selectPackage $CHAR 
 done
 `
