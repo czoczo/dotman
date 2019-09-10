@@ -71,9 +71,10 @@ curl -s -H"secret:$SECRET" {{.BaseURL}}/install | bash -
 ;;
 l)
 if [  -f ~/.dotman/managed ]; then
-  echo -e "\e[35m"
-  cat ~/.dotman/managed
-  echo -e "\e[0m"
+echo -e "\n  Installed packages:\n"
+  while read LINE; do
+    echo -e "\e[35m  $LINE\e[0m"
+  done < ~/.dotman/managed
 else
   echo "\n  It appears no dotfiles are managed by dotman yet."
 fi

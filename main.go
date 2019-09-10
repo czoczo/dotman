@@ -224,7 +224,7 @@ func main() {
         // handle synchronization endpoint - pull git repo
         if requestPath == folder + "/sync" {
             gitPull(directory)
-            fmt.Fprintf(w, "echo \"  Repo synced\"")
+            fmt.Fprintf(w, "echo -e \"\\n  Repo synced\"")
             // populate tags
             populateTagsMap(foldersMap)
             return
