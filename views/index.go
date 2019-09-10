@@ -63,7 +63,7 @@ SECRET="{{.ClientSecret}}"
 
 exec 3<>/dev/tty
 echo ""
-read -u 3 -n 1 -r -p "  Chosen option: " opt
+read -u 3 -n 1 -r -p "  Choose option: " opt
 echo ""
 case $opt in
 i)

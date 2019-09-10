@@ -37,10 +37,10 @@ enableCron() {
       command -v crontab >/dev/null 2>&1 || ( echo "  Error: couldn't find crontab. Auto update feature unsupported.")
     
       # prompt about adding updates to crontab
-      echo -e "\n  This will add curl request \"{{.BaseURL}}/update | bash -\" to crontab. Proceed? [y/N]"
-      read -u 3 -n 1 -r
+      echo -e "\n  This will add curl request \"{{.BaseURL}}/update | bash -\" to crontab. Proceed? [Y/n]"
+      read -u 3 -n 1 -r -s
       echo ""
-      if [[ ! $REPLY =~ ^[Yy]$ ]]
+      if [[ $REPLY =~ ^[Nn]$ ]]
       then
       echo "  Aborted."
       exit 0
@@ -63,8 +63,8 @@ enableCron() {
 
 disableCron() {
       # prompt about adding updates to crontab
-      echo -e "\n  This will delete curl auto update request from crontab. Proceed? [y/N]"
-      read -u 3 -n 1 -r
+      echo -e "\n  This will delete curl auto update request from crontab. Proceed? [Y/n]"
+      read -u 3 -n 1 -r -s
       echo ""
       if [[ ! $REPLY =~ ^[Yy]$ ]]
       then

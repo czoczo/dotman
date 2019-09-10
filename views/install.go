@@ -114,14 +114,14 @@ COMMA=", "
 done
 
 if [ "$COMMA" == "" ]; then
-echo "\n  Nothing to do... exiting."
+echo -e "\n  Nothing to do... exiting."
 exit 0
 fi
 
-echo -ne  "\n\n  Proceed? [y/N]"
-read -u 3 -n 1 -r
+echo -ne  "\n\n  Proceed? [Y/n]"
+read -u 3 -n 1 -r -s
 echo ""
-if [[ ! $REPLY =~ ^[Yy]$ ]]
+if [[ $REPLY =~ ^[Nn]$ ]]
 then
 echo "  Aborted."
 exit 0

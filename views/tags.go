@@ -78,10 +78,10 @@ COMMA=", "
 done
 
 exec 3<>/dev/tty
-echo -ne  "\n\n  Proceed? [y/N]"
-read -u 3 -n 1 -r
+echo -ne  "\n\n  Proceed? [Y/n]"
+read -u 3 -n 1 -r -s
 echo ""
-if [[ ! $REPLY =~ ^[Yy]$ ]]
+if [[ $REPLY =~ ^[Nn]$ ]]
 then
 echo "  Aborted."
 exit 0
