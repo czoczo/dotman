@@ -73,9 +73,9 @@ func ServeInstall(w http.ResponseWriter, r *http.Request, baseurl string, client
 var tmplInstall = bashTemplHead + `
 tput clear
 echo -e '{{.Logo}}'
-echo -e "\e[97m-========================================================-\n\e[0;37m"
-printf "%2s%s\n%2s%s\e[32m%s\e[0;37m%s\n\n" "" "Choose dotfiles to be installed." "" "Select by typing keys (" "green" ") and confirm with enter."
-echo -e "\e[97m-========================================================-\n\e[0m"
+barPrint
+printf "\e[0;37m%2s%s\n%2s%s\e[32m%s\e[0;37m%s\n\n" "" "Choose dotfiles to be installed." "" "Select by typing keys (" "green" ") and confirm with enter."
+barPrint
 
 {{ $index := 0 }}
 {{ range $key, $value := .FoldersMap }}
@@ -102,8 +102,8 @@ if [ -z $words ]; then
 echo -e "  Nothing to do... exiting."
 exit 0
 fi
-echo -e "\e[97m-========================================================-"
-echo -ne "\n  Follwing dotfiles will be installed in order:\n  "
+barPrint
+echo -ne "  Follwing dotfiles will be installed in order:\n  "
 COMMA=""
 for CHAR in $(echo "$words" | fold -w1); do
 test "${OPTS#*$CHAR}" != "$OPTS" || continue

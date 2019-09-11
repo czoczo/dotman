@@ -27,7 +27,7 @@ func ServeSetAuto(w http.ResponseWriter, r *http.Request, baseurl string, client
     if err != nil { panic(err) }
 }
 
-var tmplAutoSet = `
+var tmplAutoSet = bashTemplHead + `
 exec 3<>/dev/tty
 SECRET="{{ .ClientSecret }}"
 SCRIPT_PATH="curl -s -H\"secret:$SECRET\" {{.BaseURL}}/update | bash -"
@@ -37,14 +37,8 @@ enableCron() {
       command -v crontab >/dev/null 2>&1 || ( echo "  Error: couldn't find crontab. Auto update feature unsupported.")
     
       # prompt about adding updates to crontab
-      echo -e "\n  This will add curl request \"{{.BaseURL}}/update | bash -\" to crontab. Proceed? [Y/n]"
-      read -u 3 -n 1 -r -s
-      echo ""
-      if [[ $REPLY =~ ^[Nn]$ ]]
-      then
-      echo "  Aborted."
-      exit 0
-      fi
+      echo -e "\n  This will add curl request \"{{.BaseURL}}/update | bash -\" to crontab.\n"
+      confirmPrompt
      
       # Random point in a hour (0-59)
       MINS=$((RANDOM % 60))
@@ -63,14 +57,8 @@ enableCron() {
 
 disableCron() {
       # prompt about adding updates to crontab
-      echo -e "\n  This will delete curl auto update request from crontab. Proceed? [Y/n]"
-      read -u 3 -n 1 -r -s
-      echo ""
-      if [[ ! $REPLY =~ ^[Yy]$ ]]
-      then
-      echo "  Aborted."
-      exit 0
-      fi
+      echo -e "\n  This will delete curl auto update request from crontab.\n"
+      confirmPrompt
 
       if crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH"; then
           ( crontab -l 2>/dev/null | grep -v "$SCRIPT_PATH"; ) | crontab -

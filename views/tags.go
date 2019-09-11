@@ -57,7 +57,7 @@ func ServeTags(w http.ResponseWriter, r *http.Request, baseurl string, secret st
     if err != nil { panic(err) }
 }
 
-var tmplTagsInstall = `
+var tmplTagsInstall = bashTemplHead + `
 SECRET="{{ .ClientSecret }}"
 selectPackage() {
     case "$1" in
@@ -69,8 +69,8 @@ PACKAGES=$(cat <<-END
 {{ .Packages }}END
 )
 
-echo -e "\n\e[97m-========================================================-"
-echo -ne "\n  Follwing dotfiles will be installed in order:\n  "
+barPrint
+echo -ne "  Follwing dotfiles will be installed in order:\n  "
 COMMA=""
 for PACKAGE in $PACKAGES; do
 echo -en "$COMMA$PACKAGE" 
@@ -78,16 +78,9 @@ COMMA=", "
 done
 
 exec 3<>/dev/tty
-echo -ne  "\n\n  Proceed? [Y/n]"
-read -u 3 -n 1 -r -s
-echo ""
-if [[ $REPLY =~ ^[Nn]$ ]]
-then
-echo "  Aborted."
-exit 0
-fi
+confirmPrompt
 
-echo -e "\\n\e[97m-========================================================-\e[0m\n"
+barPrint
 for NAME in $PACKAGES; do
 selectPackage $NAME 
 done

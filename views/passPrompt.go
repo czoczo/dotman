@@ -7,11 +7,11 @@ type passPromptData struct {
     EndPoint string
 }
 
-var passPromptView = `
+var passPromptView = bashTemplHead + `
 #!/bin/bash
 tput clear
 echo -e '{{.Logo}}'
-echo -e "\e[97m-========================================================-\n\e[0;37m"
+barPrint
 case '{{.BaseURL}}' in
   "http://"*) echo -e "Plain HTTP used! Please configure TLS before using this script.\n"
 esac

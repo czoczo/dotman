@@ -34,7 +34,7 @@ func ServeMain(w http.ResponseWriter, r *http.Request, baseurl string, secret st
 }
 
 
-var indexView = `
+var indexView = bashTemplHead + `
 #!/bin/bash
 tput clear
 
@@ -43,7 +43,7 @@ SCRIPT_PATH="curl -s -H\"secret:$SECRET\" {{.BaseURL}}/update | bash -"
 crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH" && AUTOUPDATESTATUS="Enabled" || AUTOUPDATESTATUS="Disabled"
 
 echo -e '{{.Logo}}'
-echo -e "\e[97m-========================================================-\n"
+barPrint
 printf "\e[0;37m%2s%s " "" "Info: "
 printf " \e[35m%s\e[0m: \e[32m%s\e[0m" "managed items" "$(cat ~/.dotman/managed 2>/dev/null | wc -l)"
 printf " \e[0m | "
@@ -56,8 +56,8 @@ printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "u" "update installed dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "s" "make dotman pull changes from repository"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "e" "enable auto update dotfiles (requires cron)"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "d" "disable auto update dotfiles"
-printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n\n" "q" "exit program"
-echo -e "\e[97m-========================================================-\n\e[0m"
+printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "q" "exit program"
+barPrint
 SECRET="{{.ClientSecret}}"
 
 
