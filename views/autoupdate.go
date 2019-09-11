@@ -34,7 +34,7 @@ SCRIPT_PATH="curl -s -H\"secret:$SECRET\" {{.BaseURL}}/update | bash -"
 
 enableCron() {
       # check if crontab present
-      command -v crontab >/dev/null 2>&1 || ( echo "  Error: couldn't find crontab. Auto update feature unsupported.")
+      command -v crontab >/dev/null 2>&1 || ( echo "  Error: couldn't find crontab. Auto update feature unsupported."; exit 1)
     
       # prompt about adding updates to crontab
       echo -e "\n  This will add curl request \"{{.BaseURL}}/update | bash -\" to crontab.\n"

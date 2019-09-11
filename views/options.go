@@ -7,9 +7,18 @@ package views
 import (
     "log"
     "strings"
-	"os"
+    "os"
     "path/filepath"
 )
+
+// checking if file exists and is not a directory
+func fileExists(filename string) bool {
+    info, err := os.Stat(filename)
+    if os.IsNotExist(err) {
+        return false
+    }
+    return !info.IsDir()
+}
 
 // print bash CASE operator body with available dotfiles folders as options.
 // This CASE operator is used to eihter print options for menu, or output command for installing dotfiles
@@ -32,14 +41,18 @@ func repoPackagesCasePrint(foldersMap map[string]string, byName bool, directory 
 
             // search folders and add mkdir and download commands
             // recursive walk thorough the dir
-            err := filepath.Walk(directory+"/"+val,
-                func(path string, info os.FileInfo, err error) error {
+            err := filepath.Walk(directory+"/"+val, func(path string, info os.FileInfo, err error) error {
                 if err != nil {
                     return err
                 }
 
                 // skip if not a dir
                 if info.IsDir() {
+                    return nil
+                }
+
+                // skip if dotautorun.sh file
+                if strings.HasSuffix(path, "dotautorun.sh") {
                     return nil
                 }
 
@@ -58,6 +71,13 @@ func repoPackagesCasePrint(foldersMap map[string]string, byName bool, directory 
                 result = result + "             cat \"$HOME/.dotman/managed\" | grep -q \""+val+"\" || echo \""+val+"\" >> \"$HOME/.dotman/managed\" \n"
                 return nil
             })
+
+            // if dotautorun.sh present, run it
+            if fileExists(directory + "/" + val + "/dotautorun.sh") {
+                result = result + "             echo -n \"  dotautorun.sh found. Running dotautorun.sh : \"\n"
+                result = result + "             curl -sH\"secret:$SECRET\" \"" + baseurl + "/" + directory + "/" + val + "/dotautorun.sh\" | bash - \n"
+                result = result + "             RESULT=$?; [ $RESULT -eq 0 ] && echo -e \"\\e[0;32mok\\e[0m\" || echo -e \"\\e[0;31merror\\e[0m\"\n"
+            }
 
             if err != nil {
                 log.Println(err)

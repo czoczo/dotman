@@ -74,7 +74,7 @@ var tmplInstall = bashTemplHead + `
 tput clear
 echo -e '{{.Logo}}'
 barPrint
-printf "\e[0;37m%2s%s\n%2s%s\e[32m%s\e[0;37m%s\n\n" "" "Choose dotfiles to be installed." "" "Select by typing keys (" "green" ") and confirm with enter."
+printf "%2s%s\n%2s%s\e[32m%s\e[0;37m%s\n\n" "" "Choose dotfiles to be installed." "" "Select by typing keys (" "green" ") and confirm with enter."
 barPrint
 
 {{ $index := 0 }}

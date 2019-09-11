@@ -44,11 +44,11 @@ crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH" && AUTOUPDATESTATUS="Enabled" ||
 
 echo -e '{{.Logo}}'
 barPrint
-printf "\e[0;37m%2s%s " "" "Info: "
+printf "%2s%s " "" "Info: "
 printf " \e[35m%s\e[0m: \e[32m%s\e[0m" "managed items" "$(cat ~/.dotman/managed 2>/dev/null | wc -l)"
 printf " \e[0m | "
 printf " \e[35m%s\e[0m: \e[32m%s\e[0m\n\n" "auto update" "$AUTOUPDATESTATUS"
-printf "\e[0;37m%2s%s\n\n" "" "Select action:"
+printf "%2s%s\n\n" "" "Select action:"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "i" "select and install dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "l" "list installed dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "t" "list available packages tags"
