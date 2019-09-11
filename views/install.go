@@ -70,8 +70,7 @@ func ServeInstall(w http.ResponseWriter, r *http.Request, baseurl string, client
     if err != nil { panic(err) }
 }
 
-var tmplInstall = `
-#!/bin/bash
+var tmplInstall = bashTemplHead + `
 tput clear
 echo -e '{{.Logo}}'
 echo -e "\e[97m-========================================================-\n\e[0;37m"
@@ -118,16 +117,9 @@ echo -e "\n  Nothing to do... exiting."
 exit 0
 fi
 
-echo -ne  "\n\n  Proceed? [Y/n]"
-read -u 3 -n 1 -r -s
-echo ""
-if [[ $REPLY =~ ^[Nn]$ ]]
-then
-echo "  Aborted."
-exit 0
-fi
+confirmPrompt
 
-echo -e "\\n\e[97m-========================================================-\e[0m\n"
+barPrint
 echo "  Installing dotfiles:"
 
 for CHAR in $(echo "$words" | fold -w1); do
