@@ -68,7 +68,7 @@ func repoPackagesCasePrint(foldersMap map[string]string, byName bool, directory 
                 result = result + "             RESULT=$?; [ $RESULT -eq 0 ] && echo -e \"\\e[0;32mok\\e[0m\" || echo -e \"\\e[0;31merror\\e[0m\"\n"
 
                 // if not present, add option to managed dotfiles list
-                result = result + "             cat \"$HOME/.dotman/managed\" | grep -q \""+val+"\" || echo \""+val+"\" >> \"$HOME/.dotman/managed\" \n"
+                result = result + "             touch \"$HOME/.dotman/managed\"; cat \"$HOME/.dotman/managed\" | grep -q \""+val+"\" || echo \""+val+"\" >> \"$HOME/.dotman/managed\" \n"
                 return nil
             })
 
