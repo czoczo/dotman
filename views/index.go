@@ -95,6 +95,7 @@ d)
 curl -s -H"secret:$SECRET" {{.BaseURL}}/autodisable | bash -
 ;;
 q)
+tput clear
 echo -e "\n  Quiting"; exit 0
 ;;
 *)

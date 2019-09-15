@@ -17,4 +17,23 @@ Dotman is small program which connects to given git repository, clones it and sh
 # Less talk, more action!
 
 Underneath demo has following file structure in connected git repository:
-
+```
+./vim
+./vim/.vimrc
+./tags.yaml
+./BetterBash
+./BetterBash/.inputrc
+./BetterBash/.bshell
+./BetterBash/.bshell/bb.sh
+./mc
+./mc/.config
+./mc/.config/mc
+./mc/.config/mc/ini
+./mc/.config/mc/panels.ini
+./README.md
+./bashrc
+./bashrc/.bashrc
+./bash_aliases
+./bash_aliases/.bash_aliases
+```
+![dotman demo](demo.gif)
