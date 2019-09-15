@@ -38,5 +38,4 @@ Underneath demo has following file structure in connected git repository:
 ./bash_aliases/.bash_aliases
 ```
 ![dotman demo](demo.gif)
-![dotman demo](demo.gif){ width=100% }
 </center>
