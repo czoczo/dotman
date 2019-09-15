@@ -17,6 +17,7 @@ Dotman is small program which connects to given git repository, clones it and sh
 # Less talk, more action!
 
 Underneath demo has following file structure in connected git repository:
+<center>
 ```
 ./vim
 ./vim/.vimrc
@@ -37,3 +38,5 @@ Underneath demo has following file structure in connected git repository:
 ./bash_aliases/.bash_aliases
 ```
 ![dotman demo](demo.gif)
+![dotman demo](demo.gif){ width=100% }
+</center>
