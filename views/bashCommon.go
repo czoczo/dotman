@@ -21,3 +21,8 @@ confirmPrompt() {
   fi
 }
 `
+var gitCloneTeml = `
+gitCloneIfPresent() {
+    command -v git >/dev/null 2>&1  || return
+}
+`
