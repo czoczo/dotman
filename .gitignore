@@ -3,3 +3,4 @@ id_rsa*
 run.sh
 dotfiles
 ssh_data
+dotfilesrepo.tar.gz

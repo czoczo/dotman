@@ -9,8 +9,10 @@ import (
     "strconv"
     "log"
     "regexp"
-	"os"
-	"net/http"
+    "bytes"
+    "io"
+    "os"
+    "net/http"
     "strings"
     "io/ioutil"
     "github.com/namsral/flag"
@@ -259,6 +261,56 @@ func main() {
             return
         }
 
+        // handle download whole repository
+        repoFilename := "dotfilesrepo.tar.gz"
+        if requestPath == folder + "/" + repoFilename {
+            // tar + gzip
+            var buf bytes.Buffer
+            _ = compress(directory, &buf)
+
+            // write the .tar.gzip
+            fileToWrite, err := os.OpenFile(repoFilename, os.O_CREATE|os.O_RDWR, os.FileMode(0600))
+            if err != nil {
+                panic(err)
+            }
+            if _, err := io.Copy(fileToWrite, &buf); err != nil {
+                panic(err)
+            }
+
+            //Check if file exists and open
+            Openfile, err := os.Open(repoFilename)
+            defer Openfile.Close() //Close after function return
+            if err != nil {
+                //File not found, send 404
+                http.Error(w, "File not found.", 404)
+                return
+            }
+
+            //File is found, create and send the correct headers
+
+            //Get the Content-Type of the file
+            //Create a buffer to store the header of the file in
+            FileHeader := make([]byte, 512)
+            //Copy the headers into the FileHeader buffer
+            Openfile.Read(FileHeader)
+            //Get content type of file
+            FileContentType := http.DetectContentType(FileHeader)
+
+            //Get the file size
+            FileStat, _ := Openfile.Stat()                     //Get info from file
+            FileSize := strconv.FormatInt(FileStat.Size(), 10) //Get file size as a string
+
+            //Send the headers
+            w.Header().Set("Content-Disposition", "attachment; filename="+repoFilename)
+            w.Header().Set("Content-Type", FileContentType)
+            w.Header().Set("Content-Length", FileSize)
+
+            //Send the file
+            //We read 512 bytes from the file already, so we reset the offset back to 0
+            Openfile.Seek(0, 0)
+            io.Copy(w, Openfile) //'Copy' the file to the client
+            return
+        }
 
 
         // if none above catched, return 404
