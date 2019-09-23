@@ -12,6 +12,7 @@ import (
 type UpdateData struct {
     ClientSecret string
     RepoOpts string
+    BaseURL string
 }
 
 func ServeUpdate(w http.ResponseWriter, r *http.Request, baseurl string, client_secret string, directory string, foldersMap map[string]string) {
@@ -20,7 +21,7 @@ func ServeUpdate(w http.ResponseWriter, r *http.Request, baseurl string, client_
     repoPackages := repoPackagesCasePrint(foldersMap, true, directory, baseurl)
 
     // build data for template
-    data := UpdateData{client_secret, repoPackages}
+    data := UpdateData{client_secret, repoPackages, baseurl}
 
     // render template
     tmpl, err := template.New("update").Parse(tmplUpdate)
@@ -29,7 +30,7 @@ func ServeUpdate(w http.ResponseWriter, r *http.Request, baseurl string, client_
     if err != nil { panic(err) }
 }
 
-var tmplUpdate = `
+var tmplUpdate = gitCloneTmpl + `
 SECRET="{{ .ClientSecret }}"
 selectPackage() {
     case "$1" in
@@ -39,6 +40,10 @@ selectPackage() {
 if [ ! -f "$HOME/.dotman/managed" ]; then 
 echo "  It appears, you don't manage any dotfiles using dotman. Exiting."
 exit 1
+fi
+
+if [ -d "$HOME/.dotman/dotfiles" ]; then 
+    gitCloneIfPresent "$SECRET"
 fi
 
 for NAME in $(cat "$HOME/.dotman/managed"); do

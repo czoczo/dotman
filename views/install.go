@@ -16,6 +16,7 @@ type InstallData struct {
     FoldersMap map[string]string
     AvailableOpts string
     RepoOpts string
+    BaseURL string
 }
 
 func ServeInstall(w http.ResponseWriter, r *http.Request, baseurl string, client_secret string, logo string, directory string, alphabet string, foldersMap map[string]string) {
@@ -47,7 +48,7 @@ func ServeInstall(w http.ResponseWriter, r *http.Request, baseurl string, client
     repoPackages := repoPackagesCasePrint(foldersMap, false, directory, baseurl)
 
     // build data for template
-    data := InstallData{strings.ReplaceAll(logo,"'","'\"'\"'"), client_secret, menuItems, availableOpts, repoPackages}
+    data := InstallData{strings.ReplaceAll(logo,"'","'\"'\"'"), client_secret, menuItems, availableOpts, repoPackages, baseurl}
 
     // adding functions for template
     funcMap := template.FuncMap{
@@ -70,7 +71,7 @@ func ServeInstall(w http.ResponseWriter, r *http.Request, baseurl string, client
     if err != nil { panic(err) }
 }
 
-var tmplInstall = bashTemplHead + `
+var tmplInstall = bashTemplHead + gitCloneTmpl + `
 tput clear
 echo -e '{{.Logo}}'
 barPrint
@@ -99,31 +100,50 @@ echo ""
 read -u 3 -p "  Chosen packages: " words
 echo ""
 if [ -z $words ]; then
-echo -e "  Nothing to do... exiting."
-exit 0
+    echo -e "  Nothing to do... exiting."
+    exit 0
 fi
 barPrint
 echo -ne "  Follwing dotfiles will be installed in order:\n  "
 COMMA=""
 for CHAR in $(echo "$words" | fold -w1); do
-test "${OPTS#*$CHAR}" != "$OPTS" || continue
-echo -en "$COMMA" 
-selectPackage $CHAR False
-COMMA=", "
+    test "${OPTS#*$CHAR}" != "$OPTS" || continue
+    echo -en "$COMMA" 
+    selectPackage $CHAR False
+    COMMA=", "
 done
 
 if [ "$COMMA" == "" ]; then
-echo -e "\n  Nothing to do... exiting."
-exit 0
+    echo -e "\n  Nothing to do... exiting."
+    exit 0
+fi
+
+GITINSTALL=false
+if command -v git >/dev/null 2>&1; then
+    echo -e  "\n\n  GIT command present. Install using symlink method? [Y/n]"
+    read -u 3 -n 1 -r -s
+    if [[ ! $REPLY =~ ^[Nn]$ ]]
+    then
+        GITINSTALL=true
+    fi
 fi
 
 confirmPrompt
 
+if command -v git >/dev/null 2>&1; then
+    echo "GITINSTAL: $GITINSTALL"
+    "$GITINSTALL" && mkdir -p "$HOME/.dotman/dotfiles" || rm -rf "$HOME/.dotman/dotfiles"
+fi
+
 barPrint
 echo "  Installing dotfiles:"
 
+if [ -d "$HOME/.dotman/dotfiles" ]; then 
+    gitCloneIfPresent "$SECRET"
+fi
+
 for CHAR in $(echo "$words" | fold -w1); do
-test "${OPTS#*$CHAR}" != "$OPTS" || continue
-selectPackage $CHAR 
+    test "${OPTS#*$CHAR}" != "$OPTS" || continue
+    selectPackage $CHAR 
 done
 `

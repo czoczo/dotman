@@ -37,7 +37,7 @@ func repoPackagesCasePrint(foldersMap map[string]string, byName bool, directory 
             result = result + "        "+index+")\n            if [ \"$2\" ]; then\n                printf \"\\e[0;32m*\\e[0m)\\e[0;35m %s\\e[0m\" \""+val+"\"\n                return\n            fi\n"
 
             // else print download commands
-            result = result + "             echo -e \"\n  Installing \\e[0;35m"+val+"\\e[0m\"\n"
+            result = result + "             echo -e \"\\n  Installing \\e[0;35m"+val+"\\e[0m\"\n"
 
             // search folders and add mkdir and download commands
             // recursive walk thorough the dir
@@ -63,8 +63,12 @@ func repoPackagesCasePrint(foldersMap map[string]string, byName bool, directory 
                 }
 
                 // print download commands
-                result = result + "             echo -n \"  downloading file - "+output+" : \"\n"
-                result = result + "             curl -sH\"secret:$SECRET\" \"" + baseurl + "/" + path + "\" > \"$HOME/" + output+"\"\n"
+                result = result + "             [ -d \"$HOME/.dotman/dotfiles\" ] && echo -n \"  symlinking file\" || echo -n \"  downloading file\"\n"
+                result = result + "             echo -n \" - "+output+" : \"\n"
+//                result = result + "             curl -sH\"secret:$SECRET\" \"" + baseurl + "/" + path + "\" > \"$HOME/" + output+"\"\n"
+                result = result + "             if [ -d \"$HOME/.dotman/dotfiles\" ]; then\n"
+                result = result + "                 ln -sf \"$HOME/.dotman/" + directory + "/" + val + "/" + output + "\" \"$HOME/" + output+"\"\n             else\n"
+                result = result + "                 test -h \"$HOME/" + output+"\" && rm \"$HOME/" + output+"\"\n                 curl -sH\"secret:$SECRET\" \"" + baseurl + "/" + path + "\" > \"$HOME/" + output+"\"\n             fi\n"
                 result = result + "             RESULT=$?; [ $RESULT -eq 0 ] && echo -e \"\\e[0;32mok\\e[0m\" || echo -e \"\\e[0;31merror\\e[0m\"\n"
 
                 // if not present, add option to managed dotfiles list
@@ -76,6 +80,7 @@ func repoPackagesCasePrint(foldersMap map[string]string, byName bool, directory 
             if fileExists(directory + "/" + val + "/dotautorun.sh") {
                 result = result + "             echo -n \"  dotautorun.sh found. Running dotautorun.sh : \"\n"
                 result = result + "             curl -sH\"secret:$SECRET\" \"" + baseurl + "/" + directory + "/" + val + "/dotautorun.sh\" | bash - \n"
+                //result = result + "             source /dev/stdin <<< \"$(curl -H\"SECRET:$SECRET\" \"" + baseurl + "/" + directory + "/" + val + "/dotautorun.sh)\"\n"
                 result = result + "             RESULT=$?; [ $RESULT -eq 0 ] && echo -e \"\\e[0;32mok\\e[0m\" || echo -e \"\\e[0;31merror\\e[0m\"\n"
             }
 
