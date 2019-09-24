@@ -17,9 +17,10 @@ type InstallData struct {
     AvailableOpts string
     RepoOpts string
     BaseURL string
+    URLMask string
 }
 
-func ServeInstall(w http.ResponseWriter, r *http.Request, baseurl string, client_secret string, logo string, directory string, alphabet string, foldersMap map[string]string) {
+func ServeInstall(w http.ResponseWriter, r *http.Request, baseurl string, client_secret string, logo string, directory string, alphabet string, foldersMap map[string]string, urlMask string) {
 
     // variable for holding avilable oprions
     menuItems := make(map[string]string)
@@ -48,7 +49,7 @@ func ServeInstall(w http.ResponseWriter, r *http.Request, baseurl string, client
     repoPackages := repoPackagesCasePrint(foldersMap, false, directory, baseurl)
 
     // build data for template
-    data := InstallData{strings.ReplaceAll(logo,"'","'\"'\"'"), client_secret, menuItems, availableOpts, repoPackages, baseurl}
+    data := InstallData{strings.ReplaceAll(logo,"'","'\"'\"'"), client_secret, menuItems, availableOpts, repoPackages, baseurl, urlMask}
 
     // adding functions for template
     funcMap := template.FuncMap{

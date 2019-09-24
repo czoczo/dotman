@@ -35,6 +35,7 @@ var port int
 // server config
 // URL (e.g. https://exmaple.org:1338/dotfiles) under to create links to resources
 var baseurl string
+var urlMask string
 
 // set of characters to assign packages to
 var alphabet string
@@ -71,6 +72,7 @@ func main() {
     flag.StringVar(&sshkey, "sshkey", "ssh_data/id_rsa", "path to key used to connect git repository when using ssh protocol.")
     flag.BoolVar(&sshAccept, "sshaccept", false, "whether to add ssh remote servers key to known hosts file")
     flag.IntVar(&port, "port", 1338, "servers listening port")
+    flag.StringVar(&urlMask, "urlmask", "", "mask git repository URL in local repo (only git install method)")
     flag.StringVar(&baseurl, "baseurl", "http://127.0.0.1:1338", "URL for generating download commands.")
 	flag.Parse()
 
@@ -219,7 +221,7 @@ func main() {
 
         // handle install endpointm print install menu script
         if requestPath == folder + "/install" {
-            views.ServeInstall(w, r, baseurl, client_secret, getLogo(), directory, alphabet, foldersMap)
+            views.ServeInstall(w, r, baseurl, client_secret, getLogo(), directory, alphabet, foldersMap, urlMask)
             return
         }
 
@@ -245,7 +247,7 @@ func main() {
 
         // handle update script endpoint
         if requestPath == folder + "/update" {
-            views.ServeUpdate(w, r, baseurl, client_secret, directory, foldersMap)
+            views.ServeUpdate(w, r, baseurl, client_secret, directory, foldersMap, urlMask)
             return
         }
 

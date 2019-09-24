@@ -13,15 +13,16 @@ type UpdateData struct {
     ClientSecret string
     RepoOpts string
     BaseURL string
+    URLMask string
 }
 
-func ServeUpdate(w http.ResponseWriter, r *http.Request, baseurl string, client_secret string, directory string, foldersMap map[string]string) {
+func ServeUpdate(w http.ResponseWriter, r *http.Request, baseurl string, client_secret string, directory string, foldersMap map[string]string, urlMask string) {
 
     // generate body of bash case with repo packages
     repoPackages := repoPackagesCasePrint(foldersMap, true, directory, baseurl)
 
     // build data for template
-    data := UpdateData{client_secret, repoPackages, baseurl}
+    data := UpdateData{client_secret, repoPackages, baseurl, urlMask}
 
     // render template
     tmpl, err := template.New("update").Parse(tmplUpdate)
