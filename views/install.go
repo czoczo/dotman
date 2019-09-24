@@ -118,20 +118,23 @@ if [ "$COMMA" == "" ]; then
     exit 0
 fi
 
+UPDATEALL=false
 GITINSTALL=false
 if command -v git >/dev/null 2>&1; then
     echo -e  "\n\n  GIT command present. Install using symlink method? [Y/n]"
     read -u 3 -n 1 -r -s
     if [[ ! $REPLY =~ ^[Nn]$ ]]
     then
+        [ ! -d "$HOME/.dotman/dotfiles" ] && UPDATEALL=true
         GITINSTALL=true
+    else
+        [ -d "$HOME/.dotman/dotfiles" ] && UPDATEALL=true
     fi
 fi
 
 confirmPrompt
 
 if command -v git >/dev/null 2>&1; then
-    echo "GITINSTAL: $GITINSTALL"
     "$GITINSTALL" && mkdir -p "$HOME/.dotman/dotfiles" || rm -rf "$HOME/.dotman/dotfiles"
 fi
 
@@ -146,4 +149,11 @@ for CHAR in $(echo "$words" | fold -w1); do
     test "${OPTS#*$CHAR}" != "$OPTS" || continue
     selectPackage $CHAR 
 done
+
+if [ "$UPDATEALL" = true ]; then
+    barPrint
+    echo -e "\n\n  Installing method changed. Updating all the files."
+    confirmPrompt
+    curl -s -H"secret:$SECRET" {{.BaseURL}}/update | bash -
+fi
 `
