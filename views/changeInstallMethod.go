@@ -47,10 +47,11 @@ fi
 command -v git >/dev/null 2>&1 || echo "  Git command not found. Please install git to change install method." 
 
 if [ -d "$HOME/.dotman/dotfiles" ]; then 
-    echo -e "\n\n  About to change install method for all managed files from GIT symlinks to file copies."
+    echo -e "\n\n  About to change install method for all managed files from \e[35mGIT symlinks\e[0m to \e[35mfile copies\e[0m."
 else
-    echo -e "\n\n  About to change install method for all managed files from file copies to GIT symlinks."
+    echo -e "\n\n  About to change install method for all managed files from \e[35mfile copies\e[0m to \e[35mGIT symlinks\e[0m."
 fi
+echo -e "\n\n  \e[33;5mWarning!\e[0m This will update all dotfiles managed by dotman."
 
 confirmPrompt
 
