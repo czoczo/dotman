@@ -41,7 +41,7 @@ tput clear
 SECRET="{{ .ClientSecret }}"
 SCRIPT_PATH="curl -s -H\"secret:$SECRET\" {{.BaseURL}}/update | bash -"
 crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH" && AUTOUPDATESTATUS="Enabled" || AUTOUPDATESTATUS="Disabled"
-[ -d "$HOME/.dotman/dotfiles" ] && INSTALLMETHOD="git & sym-links" || INSTALLMETHOD="file copies"
+[ -d "$HOME/.dotman/dotfiles" ] && INSTALLMETHOD="git & symlinks" || INSTALLMETHOD="file copies"
 
 echo -e '{{.Logo}}'
 barPrint

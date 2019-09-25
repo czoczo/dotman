@@ -11,7 +11,10 @@ The idea of storing dot files in a git repository is not a new one. The problem 
 
 # Can I haz solution?
 
-Dotman is small program which connects to given git repository, clones it and shares it over http, with bash friendly CLI. Packages of dotfiles are represented by folders in root of given git repository and presented as select list in CLI. Each file from selected package is downloaded relative to current user home directory.
+Dotman is small program which connects to given git repository, clones it and shares it over http, with bash friendly CLI. Packages of dotfiles are represented by folders in root of given git repository and presented as select list in CLI.
+Dotman supports two dotfiles install methods:
+ - files copy: each file from selected package is downloaded relative to current user home directory. Needs only bash and curl
+ - git symlinks: if git is present, you can choose to download whole repository. Dotman will create all necessary folders and symlinks according do their. This way you can easily push any changes in dotfiles using standard git.
 
 
 # Less talk, more action!
@@ -93,3 +96,7 @@ All configuraion variables can be provided either as environment variables or as
 | --- | --- | --- | --- |
 | URL | -url | | URL to git repository containing dot files. Can be either http://, https:// or ssh:// protocol |
 | BASEURL | -baseurl | http://127.0.0.1:1338" | URL prefix which will be used for generating download links. It should be the exact URL under which dotman is served. Use https if you put dotman behind SSL terminator |
+
+ # Security
+ 
+ I know what some of you are thinking now: http://whatever.net | sh - pattern is a very ugly one. True. That's I want to make it clear: unless you're doing test on disposable virtual machine, or doing it on localhost, you're forbidden to use it without correctly configured TLS. For crying out load, it's your shell you're giving access to. You wouldn't let tandom guy put commands on your terminal, would you?
