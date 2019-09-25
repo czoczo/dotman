@@ -28,7 +28,7 @@ func fileExists(filename string) bool {
 }
 
 // git pull method used to sync shared folder
-func gitPull(directory string) {
+func gitPull(directory string) string {
 
     // we instance\iate a new repository targeting the given path (the .git folder)
     gitr, err := git.PlainOpen(directory)
@@ -53,6 +53,7 @@ func gitPull(directory string) {
     CheckIfError(err)
 
     fmt.Println(commit)
+    return commit.String()
 }
 
 // git sync repository by either doing git clone, or pulling if existant
