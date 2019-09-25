@@ -92,11 +92,17 @@ curl 127.0.0.1:1338 | bash -
 ```
 ## Configuration in depth
 All configuraion variables can be provided either as environment variables or as program arguments. The choice is yours. Here's a description of all of them:
-| Environment variable | Argument | Default Value | Description |
-| --- | --- | --- | --- |
-| URL | -url | | URL to git repository containing dot files. Can be either http://, https:// or ssh:// protocol |
-| BASEURL | -baseurl | http://127.0.0.1:1338" | URL prefix which will be used for generating download links. It should be the exact URL under which dotman is served. Use https if you put dotman behind SSL terminator |
 
- # Security
- 
- I know what some of you are thinking now: http://whatever.net | sh - pattern is a very ugly one. True. That's I want to make it clear: unless you're doing test on disposable virtual machine, or doing it on localhost, you're forbidden to use it without correctly configured TLS. For crying out load, it's your shell you're giving access to. You wouldn't let tandom guy put commands on your terminal, would you?
+| Environment variable | Argument | Type | Default Value | Description |
+| ----- | ----- | ----- | ----- | ----- |
+| URL | -url | string | - | URL to git repository containing dot files. Can be either http://, https:// or ssh:// protocol |
+| BASEURL | -baseurl | string | http://127.0.0.1:1338" | URL prefix which will be used for generating download links. It should be the exact URL under which dotman is served. Use https if you put dotman behind SSL terminator |
+| SSHKEY | -sshkey | string | ssh_data/id_rsa | Path to key used to connect git repository when using ssh protocol |
+| SSHACCEPT | -sshaccept | boolean | - | Whether to add ssh remote servers key to known hosts file. Use it whenever you're binding dotman with a new repository over ssh |
+| PASSWORD | -password | string | - | Password to use when connecting to git repository over HTTP protocol |
+| PORT | -port | integer | 1338 | Port on which dotman should listen to. If you're going production, you're most likely to set port 80 |
+| SECRET | -secret | string | - | If set, bash CLI will ask for secret and all dotfiles will be protected by it |
+| URLMASK | -urlmask | string | - | If using containers, your URL variable might be different, than the one you would like to be set when using git & symlink install method. Use this variable to override URL in cloned repo |
+
+# Security
+I know what some of you are thinking now: `http://whatever.net | sh -` pattern is a very ugly one. True. That's I want to make it clear: unless you're doing test on disposable virtual machine, or doing it on localhost, you're forbidden to use it without correctly configured TLS. For crying out load, it's your shell you're giving access to. You wouldn't let tandom guy put commands on your terminal, would you?
