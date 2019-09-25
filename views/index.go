@@ -53,6 +53,7 @@ printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "i" "select and install dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "l" "list installed dotfiles"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "t" "list available packages tags"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "u" "update installed dotfiles"
+printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "c" "change dotfiles install method (git symlinks or file copies)"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "s" "make dotman pull changes from repository"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "e" "enable auto update dotfiles (requires cron)"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "d" "disable auto update dotfiles"
@@ -84,6 +85,9 @@ curl -s -H"secret:$SECRET" {{.BaseURL}}/tagslist | bash -
 ;;
 u)
 curl -s -H"secret:$SECRET" {{.BaseURL}}/update | bash -
+;;
+c)
+curl -s -H"secret:$SECRET" {{.BaseURL}}/changeInstallMethod | bash -
 ;;
 s)
 curl -s -H"secret:$SECRET" {{.BaseURL}}/sync | bash -

@@ -251,6 +251,12 @@ func main() {
             return
         }
 
+        // handle change of install method script endpoint
+        if requestPath == folder + "/changeInstallMethod" {
+            views.ServeChangeInstallMethod(w, r, baseurl, client_secret, directory, foldersMap, urlMask)
+            return
+        }
+
         // handle auto update enable endpoint
         if requestPath == folder + "/autoenable" {
             views.ServeSetAuto(w, r, baseurl, client_secret, true)
