@@ -76,7 +76,7 @@ var tmplInstall = bashTemplHead + gitCloneTmpl + `
 tput clear
 echo -e '{{.Logo}}'
 barPrint
-printf "%2s%s\n%2s%s\e[32m%s\e[0;37m%s\n\n" "" "Choose dotfiles to be installed." "" "Select by typing keys (" "green" ") and confirm with enter."
+printf "%2s%s\n%2s%s\e[32m%s\e[0m%s\n\n" "" "Choose dotfiles to be installed." "" "Select by typing keys (" "green" ") and confirm with enter."
 barPrint
 
 {{ $index := 0 }}
@@ -105,6 +105,7 @@ if [ -z $words ]; then
     exit 0
 fi
 barPrint
+
 echo -ne "  Follwing dotfiles will be installed in order:\n  "
 COMMA=""
 for CHAR in $(echo "$words" | fold -w1); do
@@ -122,7 +123,10 @@ fi
 GITINSTALL=false
 
 if [ -f "$HOME/.dotman/managed" ]; then
-    [ -d "$HOME/.dotman/dotfiles" ] && GITINSTALL=true     
+    if [ -d "$HOME/.dotman/dotfiles" ]; then
+        GITINSTALL=true
+        echo -e "\n\n  \e[33;5mWarning!\e[0m\n  Git install method used.\n  This will update any other dotfiles managed by dotman."
+    fi
 else
     echo -e  "\n\n  Fresh install. GIT command present. Install using symlink method? [Y/n]"
     read -u 3 -n 1 -r -s
