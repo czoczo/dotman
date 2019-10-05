@@ -53,16 +53,17 @@ Underneath demo has following file structure in connected git repository:
   - clone this repository and start with docker-compose up
   - clone this repository and compile with `go build`
 
+
 3. Setup minimal configuration by setting following environment variables according to your git repository access method:
   * SSH
-  ```
-  URL=ssh://git@github.com:username/dotfilesrepo.git
-  ```
+    ```
+    URL=ssh://git@github.com:username/dotfilesrepo.git
+    ```
   * HTTP/HTTPS
-  ```
-  URL=https://username@github.com/username/dotfilesrepo.git
-  PASSWORD=repository_access_password
-  ```
+    ```
+    URL=https://username@github.com/username/dotfilesrepo.git
+    PASSWORD=repository_access_password
+    ```
 4. Now just run dotman and see the magic happen. On first run, dotman will generate SSH key pair and print public key on standard output. Allow it to access your repository in order to use ssh connection.
 
    Make sure dotman loaded repository correctly, by viewing the logs. If so, you're ready to go!
