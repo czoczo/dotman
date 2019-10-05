@@ -46,30 +46,34 @@ Underneath demo has following file structure in connected git repository:
 </center>
 
 # Quick start
-1. Create git repository on server of your choice with folders and dotconfigs inside, or use my example repository: http://cz0.cz/git/mydotfiles.
+## Step 1
+Create git repository on server of your choice with folders and dotconfigs inside, or use my example repository: http://cz0.cz/git/mydotfiles.
 
-2. Either:
-  - download dotman binary
-  - clone this repository and start with docker-compose up
-  - clone this repository and compile with `go build`
+## Step 2
+Either:
+- download dotman binary
+- start with docker-compose up
+- compile with go
 
+## Step 3
+Setup minimal configuration by setting following environment variables according to your git repository 
+### SSH
+```
+URL=ssh://git@github.com:username/dotfilesrepo.git
 
-3. Setup minimal configuration by setting following environment variables according to your git repository access method:
-  * SSH
-    ```
-    URL=ssh://git@github.com:username/dotfilesrepo.git
-    ```
-  * HTTP/HTTPS
-    ```
-    URL=https://username@github.com/username/dotfilesrepo.git
-    PASSWORD=repository_access_password
-    ```
-4. Now just run dotman and see the magic happen. On first run, dotman will generate SSH key pair and print public key on standard output. Allow it to access your repository in order to use ssh connection.
+```
+### HTTP/HTTPS
+```
+URL=https://username@github.com/username/dotfilesrepo.git
+PASSWORD=repository_access_password
+```
+## Step 4
+Now just run dotman and see the magic happen. On first run, dotman will generate SSH key pair and print public key on standard output. Allow it to access your repository in order to use ssh connection.
 
-   Make sure dotman loaded repository correctly, by viewing the logs. If so, you're ready to go!
-   ```
-   curl 127.0.0.1:1338 | sh -
-   ```
+Make sure dotman loaded repository correctly, by viewing the logs. If so, you're ready to go!
+```
+curl 127.0.0.1:1338 | sh -
+```
 
 # Additional features
 Except basic usage, dotman has some optional features, that will make your dotfiles deployment even more sexy.
