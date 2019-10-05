@@ -51,22 +51,24 @@ Create git repository on server of your choice with folders and dotconfigs insid
 
 ## Step 2
 Either:
-- download dotman binary
-- start with docker-compose up
-- compile with go
+- download dotman binary from
+- clone this repository and start with docker-compose up
+- clone this repository and compile with `go build`
 
 ## Step 3
-Setup minimal configuration by setting following environment variables according to your git repository 
+Setup minimal configuration by setting following environment variables according to your git repository access method:
+
 ### SSH
 ```
 URL=ssh://git@github.com:username/dotfilesrepo.git
-
 ```
+
 ### HTTP/HTTPS
 ```
 URL=https://username@github.com/username/dotfilesrepo.git
 PASSWORD=repository_access_password
 ```
+
 ## Step 4
 Now just run dotman and see the magic happen. On first run, dotman will generate SSH key pair and print public key on standard output. Allow it to access your repository in order to use ssh connection.
 
@@ -96,7 +98,7 @@ tags:
     - vim
 ```
 
-Install packagee with tags by using `/t/tagname endpoint`. It'll skip menu and go straight to downloading files.
+Install packagee with tags by using `http://myserver.net/t/tagname` endpoint. It'll skip menu and go straight to downloading files.
 
 ## Eliminate manual work - word or two about autorun
 Every now and then, there is a need to run some commands after modyfing dotconfigs. Whether it's a window manager configuration reload, or evaluating some dynamic values for your config - doesn't matter! Just script it in bash, name it dotautorun.sh and put it inside in git folder holiding your applications dotfiles. It will be run during deployment of that package. Simple.
@@ -105,15 +107,20 @@ Every now and then, there is a need to run some commands after modyfing dotconfi
 Dotmans CLI is pretty elastic. Some endpoints can be useful outside CLI. You can call them using curl. If you use secret, pass it inside HTTP header like on examples below.
 
 ### Update installed dotfiles
-want to update all dotfiles managed by dotman on yupur workstation? Run following:
-`curl -H"secret:myterriblesecret" http://myserver.net/update`
+Want to update all dotfiles managed by dotman on your workstation? Run following:
+```
+curl -H"secret:myterriblesecret" http://myserver.net/update
+````
 
 ### Make server refresh served repository
 You made changes to dotfiles in repo? Refresh files server on dotman by running:
-`curl -H"secret:myterriblesecret" http://myserver.net/sync`
+```
+curl -H"secret:myterriblesecret" http://myserver.net/sync
+```
 
 # Configuration in depth
 All configuraion variables can be provided either as environment variables or as program arguments. The choice is yours. Here's a description of all of them:
+
 | Environment variable | Argument | Type | Default Value | Description |
 | ----- | ----- | ----- | ----- | ----- |
 | URL | -url | string | - | URL to git repository containing dot files. Can be either http://, https:// or ssh:// protocol |
