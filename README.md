@@ -110,7 +110,7 @@ Dotmans CLI is pretty elastic. Some endpoints can be useful outside CLI. You can
 Want to update all dotfiles managed by dotman on your workstation? Run following:
 ```
 curl -H"secret:myterriblesecret" http://myserver.net/update
-````
+```
 
 ### Make server refresh served repository
 You made changes to dotfiles in repo? Refresh files server on dotman by running:
@@ -132,6 +132,6 @@ All configuraion variables can be provided either as environment variables or as
 | SECRET | -secret | string | - | If set, bash CLI will ask for secret and all dotfiles will be protected by it |
 | URLMASK | -urlmask | string | - | If using containers, your URL variable might be different, than the one you would like to be set when using git & symlink install method. Use this variable to override URL in cloned repo |
 
- # Security
+# Security
  
  I know what some of you are thinking now: `http://whatever.net | sh -` pattern is a very ugly one. True. That's I want to make it clear: unless you're doing test on disposable virtual machine, or doing it on localhost, you're forbidden to use it without correctly configured TLS. For crying out load, it's your shell you're giving access to. You wouldn't let tandom guy put commands on your terminal, would you?
