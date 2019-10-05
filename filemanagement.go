@@ -58,30 +58,28 @@ func gitPull(directory string) string {
 
 // git sync repository by either doing git clone, or pulling if existant
 func gitSync(auth transport.AuthMethod, url string, directory string) {
-    if _, err := os.Stat(directory); os.IsNotExist(err) {
-        // Clone the given repository to the given directory
-        Info("git clone %s %s", url, directory)
+    // clear data
+    os.RemoveAll(directory)
 
-        gitr, err := git.PlainClone(directory, false, &git.CloneOptions{
-            Auth: auth,
-            URL:      url,
-            Progress: os.Stdout,
-        })
+    // clone the given repository to the given directory
+    Info("git clone %s %s", url, directory)
 
-        CheckIfError(err)
+    gitr, err := git.PlainClone(directory, false, &git.CloneOptions{
+        Auth: auth,
+        URL:      url,
+        Progress: os.Stdout,
+    })
 
-        // ... retrieving the branch being pointed by HEAD
-        ref, err := gitr.Head()
-        CheckIfError(err)
-        // ... retrieving the commit object
-        commit, err := gitr.CommitObject(ref.Hash())
-        CheckIfError(err)
+    CheckIfError(err)
 
-        fmt.Println(commit)
+    // ... retrieving the branch being pointed by HEAD
+    ref, err := gitr.Head()
+    CheckIfError(err)
+    // ... retrieving the commit object
+    commit, err := gitr.CommitObject(ref.Hash())
+    CheckIfError(err)
 
-    } else {
-        gitPull(directory)
-    }
+    fmt.Println(commit)
 }
 
 // return auth object based on url
@@ -157,7 +155,7 @@ func getFoldersMap(directory string, alphabet string) map[string]string {
     for _, f := range files {
 
             // skip .git and README.md - case insensitive
-            match, _ := regexp.MatchString("(?i)(.git|README.md|tags.yaml)", f.Name())
+            match, _ := regexp.MatchString("(?i)(.git|README.md|config.yaml)", f.Name())
             if match {
                 continue
             }

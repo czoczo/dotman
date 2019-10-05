@@ -237,6 +237,10 @@ func main() {
 
         // handle tags list
         if requestPath == folder + "/tagslist" {
+            if len(tagsData.Tags) == 0 {
+                fmt.Fprintf(w, "echo -e \"\\n  No tags configured.\\n\"\n")
+                return
+            }
             fmt.Fprintf(w, "echo -e \"\\n  Available tags:\\n\"\n")
             for key, val := range tagsData.Tags {
                 packages := strings.Join(val[:],`\e[0m, \e[35m`)

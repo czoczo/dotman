@@ -14,7 +14,7 @@ import (
 
 // check if path starts with dot or a README.md
 func containsDotFile(name string) bool {
-        if strings.HasPrefix(name, "/.") || name=="/README.md" || name=="/tags.yaml" {
+        if strings.HasPrefix(name, "/.") || name=="/README.md" || name=="/config.yaml" {
             return true
         }
     return false

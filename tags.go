@@ -19,10 +19,10 @@ type TagsData struct {
 var tagsData TagsData
 
 func populateTagsMap(foldersMap map[string]string) {
-    tagsFile := directory + "/tags.yaml"
+    tagsFile := directory + "/config.yaml"
 
     if ! fileExists(tagsFile) {
-        log.Println("tags.yaml: file not found. skipping populating tags")
+        log.Println("config.yaml: file not found. skipping populating tags")
         return
     }
 
@@ -30,13 +30,13 @@ func populateTagsMap(foldersMap map[string]string) {
     yamlFile, err := ioutil.ReadFile(filename)
 
     if err != nil {
-        log.Println("tags.yaml: error reading file. skipping populating tags")
+        log.Println("config.yaml: error reading file. skipping populating tags")
         return
     }
 
     err = yaml.Unmarshal(yamlFile, &tagsData)
         if err != nil {
-        log.Println("tags.yaml: error parsing file. skipping populating tags")
+        log.Println("config.yaml: error parsing file. skipping populating tags")
         return
     }
 
@@ -47,7 +47,7 @@ func populateTagsMap(foldersMap map[string]string) {
     }
 
     // show loaded tags
-    log.Println("Loading tags from tags.yaml file...")
+    log.Println("Loading tags from config.yaml file...")
     for tagkey, tagval := range tagsData.Tags {
 
         // print tag
