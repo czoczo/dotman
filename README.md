@@ -136,3 +136,15 @@ All configuraion variables can be provided either as environment variables or as
 # Security
  
  I know what some of you are thinking now: `http://whatever.net | sh -` pattern is a very ugly one. True. That's I want to make it clear: unless you're doing test on disposable virtual machine, or doing it on localhost, you're forbidden to use it without correctly configured TLS. For crying out load, it's your shell you're giving access to. You wouldn't let tandom guy put commands on your terminal, would you?
+
+# Other solutions comparison
+Dotman is by far not the first software to attempt to manage dotfiles. In fact there are dozens of such applications/frameworks. If you haven't yet seen website http://dotfiles.github.io/, I strongly advise you to check it out. Maybe some other app will suit your needs better.
+
+But before you go, I want to point out some strengths of dotman:
+* it doesn't require git on the host you're want to deploy dotfiles to
+* you don't have to remember any commands/it has intuitive CLI
+* almost effortless configuration
+* written in golang/portable binary
+* easy dotfiles updates when git installed
+
+
