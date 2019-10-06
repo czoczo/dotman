@@ -86,7 +86,6 @@ printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m" "{{ $key }} " "{{ $value }}"
 {{ if mod $index 3 }}echo ""{{ end }}
 {{ end }}
 
-mkdir -p "$HOME/.dotman"; touch "$HOME/.dotman/managed"
 SECRET="{{ .ClientSecret }}"
 selectPackage() {
     case "$1" in
@@ -128,12 +127,16 @@ if [ -f "$HOME/.dotman/managed" ]; then
         echo -e "\n\n  \e[33;5mWarning!\e[0m\n  Git install method used.\n  This will update any other dotfiles managed by dotman."
     fi
 else
-    echo -e  "\n\n  Fresh install. GIT command present. Install using symlink method? [Y/n]"
-    read -u 3 -n 1 -r -s
-    [[ ! $REPLY =~ ^[Nn]$ ]] && GITINSTALL=true
+    if command -v git >/dev/null 2>&1; then
+        echo -e  "\n\n  Fresh install. GIT command present. Install using git symlink method? [Y/n]"
+        read -u 3 -n 1 -r -s
+        [[ ! $REPLY =~ ^[Nn]$ ]] && GITINSTALL=true
+    fi
 fi
 
 confirmPrompt
+
+mkdir -p "$HOME/.dotman"; touch "$HOME/.dotman/managed"
 
 if command -v git >/dev/null 2>&1; then
     "$GITINSTALL" && mkdir -p "$HOME/.dotman/dotfiles" || rm -rf "$HOME/.dotman/dotfiles"

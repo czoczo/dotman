@@ -23,24 +23,25 @@ Underneath demo has following file structure in connected git repository:
 <center>
 ```
 .
-├── bash_aliases
-│   └── .bash_aliases
 ├── bashrc
-│   └── .bashrc
-├── BetterBash
 │   ├── .bshell
 │   │   ├── bb.sh
 │   │   └── git-prompt.sh
+│   ├── .bashrc
 │   └── .inputrc
 ├── mc
 │   └── .config
 │       └── mc
 │           ├── ini
 │           └── panels.ini
-├── README.md
-├── tags.yaml
-└── vim
-    └── .vimrc
+├── mplayer
+│   └── .mplayer
+│       └── config
+├── screen
+│   └── .screenrc
+├── vim
+│   └── .vimrc
+└── README.md
 ```
 ![dotman demo](demo.gif)
 </center>
