@@ -119,6 +119,9 @@ You made changes to dotfiles in repo? Refresh files server on dotman by running:
 curl -H"secret:myterriblesecret" http://myserver.net/sync
 ```
 
+## Keep up with repo - what is auto update?
+One of dotman CLI menu positions is enabling dotfiles auto updates. This simple function, adds curl request to `/update` endpoint to cron, so your dotfiles will be updated every hour. Disable by either deleting line in crontab, or using "disable auto update" option.
+
 # Configuration in depth
 All configuraion variables can be provided either as environment variables or as program arguments. The choice is yours. Here's a description of all of them:
 
@@ -144,7 +147,8 @@ But before you go, I want to point out some strengths of dotman:
 * it doesn't require git on the host you're want to deploy dotfiles to
 * you don't have to remember any commands/it has intuitive CLI
 * almost effortless configuration
-* written in golang/portable binary
-* easy dotfiles updates when git installed
+* server written in golang/portable binary
+* capable of autoupdating dotfiles using cron 
+* update dotfiles content on repo, using standard git workflow, when git installed
 
 
