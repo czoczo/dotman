@@ -1,6 +1,6 @@
 # A must-be catchy header
 
-First ssh login to new server? Miss your dot files? Want to be able to get them fast and manage them almost effortlessly? Keep reading...
+First ssh login to new server? Miss your dot files? Want to be able to get them fast and manage them almost effortlessly? Keep reading! 
 
 # Problem?
 
@@ -47,36 +47,46 @@ Underneath demo has following file structure in connected git repository:
 </center>
 
 # Quick start
-## Step 1
-Create git repository on server of your choice with folders and dotconfigs inside, or use my example repository: https://github.com/czoczo/dotman-example-repo.
-
-## Step 2
-Either:
-- download dotman binary from
-- clone this repository and start with docker-compose up
+download by either:
+- download dotman binary from https://github.com/czoczo/dotman/releases
 - clone this repository and compile with `go build`
+- clone this repository and use `docker-compose build` to create a container
 
-## Step 3
-Minimal configuration consists of setting following environment variables according to your git repository access method:
+if running binary start with: `./dotman -url https://github.com/czoczo/dotman-example-repo`
+if using container start with: `docker-compose up`
 
-### SSH
+Yup, that's it! Check by running:
 ```
-URL=ssh://git@github.com:username/dotfilesrepo.git
+curl localhost:1338 | sh -
 ```
 
-### HTTP/HTTPS
+# Setting own dotfiles repository
+Create git repository on server of your choice with folders and dotconfigs inside. Use https://github.com/czoczo/dotman-example-repo as an example. Git repository might be set as public or private - your choice!
+
+Most popular git servers offer at least two possible protocols: HTTP or SSH. Dotman supports both of them. Just remember to use proper prefix when setting URL like on examples below:
+
+## HTTP/HTTPS
+Public
+```
+URL=https://github.com/username/dotfilesrepo.git
+```
+
+Private
 ```
 URL=https://username@github.com/username/dotfilesrepo.git
 PASSWORD=repository_access_password
 ```
 
-## Step 4
-Now just run dotman and see the magic happen. On first run, dotman will generate SSH key pair and print public key on standard output. Allow it to access your repository in order to use ssh connection.
+## SSH
+```
+URL=ssh://git@github.com:username/dotfilesrepo.git
+```
+
+Now just run dotman and see the magic happen.
+When using ssh protocol,dotman will generate SSH key pair and print public key on standard output. Allow it to access your repository in order to use ssh connection.
+If you're connecting to given repository for a first time, you're going to get this error: "error: ssh: handshake failed: knownhosts: key is unknown". Run dotman with `-sshaccept=true` once, to add remote key to known hosts.
 
 Make sure dotman loaded repository correctly, by viewing the logs. If so, you're ready to go!
-```
-curl 127.0.0.1:1338 | sh -
-```
 
 # Additional features
 Except basic usage, dotman has some optional features, that will make your dotfiles deployment even more sexy.

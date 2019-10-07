@@ -96,22 +96,23 @@ func main() {
         os.Exit(1)
     }
 
-    // extracte remote host address with port for ssh connection case
-    urlMatch := re.FindStringSubmatch(url)
-    remoteHost := urlMatch[2]
-    if ! strings.Contains(remoteHost, ":") {
-        remoteHost = remoteHost + ":22"
-    }
 
     // extract username
     re = regexp.MustCompile("(ssh|https?)://(.+)@([^/$]+)")
-    urlMatch = re.FindStringSubmatch(url)
+    urlMatch := re.FindStringSubmatch(url)
     if len(urlMatch) > 2 {
         username = urlMatch[2]
     }
 
+    // extracte remote host address with port for ssh connection case
+    //urlMatch := re.FindStringSubmatch(url)
+    remoteHost := urlMatch[3]
+    match, _ := regexp.MatchString(".+:[0-9]+$",remoteHost)
+    if match == false {
+        remoteHost = remoteHost + ":22"
+    }
     // check baseurl
-    match, _ := regexp.MatchString("https?://.+",baseurl)
+    match, _ = regexp.MatchString("https?://.+",baseurl)
     if match == false {
         log.Println("Unsupported base URL given. Use http or https protocol based URL. Exiting.")
         os.Exit(2)
