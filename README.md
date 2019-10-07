@@ -57,7 +57,7 @@ Either:
 - clone this repository and compile with `go build`
 
 ## Step 3
-Setup minimal configuration by setting following environment variables according to your git repository access method:
+Minimal configuration consists of setting following environment variables according to your git repository access method:
 
 ### SSH
 ```
@@ -99,13 +99,13 @@ tags:
     - vim
 ```
 
-Install packagee with tags by using `http://myserver.net/t/tagname` endpoint. It'll skip menu and go straight to downloading files.
+Install packages with tag by using `http://myserver.net/t/tagname` endpoint. It'll skip menu and go straight to downloading files.
 
 ## Eliminate manual work - word or two about autorun
-Every now and then, there is a need to run some commands after modyfing dotconfigs. Whether it's a window manager configuration reload, or evaluating some dynamic values for your config - doesn't matter! Just script it in bash, name it dotautorun.sh and put it inside in git folder holiding your applications dotfiles. It will be run during deployment of that package. Simple.
+Every now and then, there is a need to run some commands after modifying dotconfigs. Whether it's a window manager configuration reload, or evaluating some dynamic values for your config - doesn't matter! Just script it in bash, name it dotautorun.sh and put it inside git folder holding your applications dotfiles. It will be executed during deployment of that package. Simple.
 
 ## Useful endpoints
-Dotmans CLI is pretty elastic. Some endpoints can be useful outside CLI. You can call them using curl. If you use secret, pass it inside HTTP header like on examples below.
+Dotmans CLI is pretty elastic. Some endpoints can be useful outside CLI. You can call them using curl. If you use secret, pass it inside HTTP header like in examples below.
 
 ### Update installed dotfiles
 Want to update all dotfiles managed by dotman on your workstation? Run following:
@@ -120,10 +120,21 @@ curl -H"secret:myterriblesecret" http://myserver.net/sync
 ```
 
 ## Keep up with repo - what is auto update?
-One of dotman CLI menu positions is enabling dotfiles auto updates. This simple function, adds curl request to `/update` endpoint to cron, so your dotfiles will be updated every hour. Disable by either deleting line in crontab, or using "disable auto update" option.
+One of dotman CLI menu options is enabling dotfiles auto updates. This simple function, adds curl request to `/update` endpoint to cron, so your dotfiles will be updated every hour. Disable by either deleting line in crontab, or using "disable auto update" option.
+
+# Other solutions comparison
+Dotman is not the first attempt of humanity to manage dotfiles. In fact there are dozens of such applications/frameworks. If you haven't yet seen website http://dotfiles.github.io/, I strongly advise you to check it out. Maybe some other app will suit your needs better.
+
+But before you go, I want to point out some strengths of dotman:
+* it doesn't require git on the host you're want to deploy dotfiles to
+* you don't have to remember any commands/it has intuitive CLI
+* almost effortless configuration
+* server written in golang/portable binary
+* capable of autoupdating dotfiles using cron 
+* when installed, leverage standard git workflow to update dotfiles content
 
 # Configuration in depth
-All configuraion variables can be provided either as environment variables or as program arguments. The choice is yours. Here's a description of all of them:
+All configuration variables can be provided either as environment variables or as program arguments. The choice is yours. Here's a description of all of them:
 
 | Environment variable | Argument | Type | Default Value | Description |
 | ----- | ----- | ----- | ----- | ----- |
@@ -138,17 +149,4 @@ All configuraion variables can be provided either as environment variables or as
 
 # Security
  
- I know what some of you are thinking now: `http://whatever.net | sh -` pattern is a very ugly one. True. That's I want to make it clear: unless you're doing test on disposable virtual machine, or doing it on localhost, you're forbidden to use it without correctly configured TLS. For crying out load, it's your shell you're giving access to. You wouldn't let tandom guy put commands on your terminal, would you?
-
-# Other solutions comparison
-Dotman is by far not the first software to attempt to manage dotfiles. In fact there are dozens of such applications/frameworks. If you haven't yet seen website http://dotfiles.github.io/, I strongly advise you to check it out. Maybe some other app will suit your needs better.
-
-But before you go, I want to point out some strengths of dotman:
-* it doesn't require git on the host you're want to deploy dotfiles to
-* you don't have to remember any commands/it has intuitive CLI
-* almost effortless configuration
-* server written in golang/portable binary
-* capable of autoupdating dotfiles using cron 
-* update dotfiles content on repo, using standard git workflow, when git installed
-
-
+ I know what some of you are thinking now: `http://whatever.net | sh -` pattern looks ugly, especially to security guys. That's I want to make it clear: unless you're doing test on disposable virtual machine, or doing a test on localhost, you're forbidden to use it without correctly configured TLS infront of dotman. For crying out load, it's your shell you're giving access to. You wouldn't let random guy put commands on your terminal while you don't watch,, would you?
