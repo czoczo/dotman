@@ -48,7 +48,7 @@ Underneath demo has following file structure in connected git repository:
 
 # Quick start
 ## Step 1
-Create git repository on server of your choice with folders and dotconfigs inside, or use my example repository: http://cz0.cz/git/mydotfiles.
+Create git repository on server of your choice with folders and dotconfigs inside, or use my example repository: https://github.com/czoczo/dotman-example-repo.
 
 ## Step 2
 Either:
