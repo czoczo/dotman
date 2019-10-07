@@ -64,6 +64,7 @@ func gitSync(auth transport.AuthMethod, url string, directory string) {
     // clone the given repository to the given directory
     Info("git clone %s %s", url, directory)
 
+    log.Println("trying clone")
     gitr, err := git.PlainClone(directory, false, &git.CloneOptions{
         Auth: auth,
         URL:      url,
@@ -72,10 +73,12 @@ func gitSync(auth transport.AuthMethod, url string, directory string) {
 
     CheckIfError(err)
 
+    log.Println("retriving head")
     // ... retrieving the branch being pointed by HEAD
     ref, err := gitr.Head()
     CheckIfError(err)
     // ... retrieving the commit object
+    log.Println("retriving commit object")
     commit, err := gitr.CommitObject(ref.Hash())
     CheckIfError(err)
 

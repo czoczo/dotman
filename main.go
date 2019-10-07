@@ -88,22 +88,26 @@ func main() {
     }
 
     // if url not valid
-    re := regexp.MustCompile("(ssh|https?)://(.+)@([^/$]+)")
+    re := regexp.MustCompile("(ssh|https?)://([^/$]+)")
     if re.MatchString(url) == false {
         flag.PrintDefaults()
         fmt.Println()
-        log.Println("Provided repository URL: " + url + " not supported. Provide either ssh or http(s) protocol URL with username. Exiting.")
+        log.Println("Provided repository URL: " + url + " not supported. Provide either ssh or http(s) protocol URL. Exiting.")
         os.Exit(1)
     }
 
-    // extract username
+    // extracte remote host address with port for ssh connection case
     urlMatch := re.FindStringSubmatch(url)
-    username = urlMatch[2]
-
-    // extracte remote host address with port
-    remoteHost := urlMatch[3]
+    remoteHost := urlMatch[2]
     if ! strings.Contains(remoteHost, ":") {
         remoteHost = remoteHost + ":22"
+    }
+
+    // extract username
+    re = regexp.MustCompile("(ssh|https?)://(.+)@([^/$]+)")
+    urlMatch = re.FindStringSubmatch(url)
+    if len(urlMatch) > 2 {
+        username = urlMatch[2]
     }
 
     // check baseurl
@@ -145,7 +149,9 @@ func main() {
     // print hello and server configuration
     log.Println("Starting dotman - dot file manager.")
     log.Println("Repository URL: " + url)
-    log.Println("GIT username: " + username)
+    //if len(username) > 0 {
+        log.Println("GIT username: " + username)
+    //}
     log.Println("Listening port: " + strconv.Itoa(port))
     log.Println("Download URLs prefix: " + baseurl+"/"+directory)
 
