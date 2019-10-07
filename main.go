@@ -149,9 +149,7 @@ func main() {
     // print hello and server configuration
     log.Println("Starting dotman - dot file manager.")
     log.Println("Repository URL: " + url)
-    //if len(username) > 0 {
-        log.Println("GIT username: " + username)
-    //}
+    log.Println("GIT username: " + username)
     log.Println("Listening port: " + strconv.Itoa(port))
     log.Println("Download URLs prefix: " + baseurl+"/"+directory)
 
@@ -283,6 +281,13 @@ func main() {
         // handle download whole repository
         repoFilename := "dotfilesrepo.tar.gz"
         if requestPath == folder + "/" + repoFilename {
+            // delete file if exists
+            if fileExists(repoFilename) {
+                err := os.Remove(repoFilename)
+                if err != nil {
+                    log.Fatal(err)
+                }
+            }
             // tar + gzip
             var buf bytes.Buffer
             _ = compress(directory, &buf)
