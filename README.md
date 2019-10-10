@@ -13,7 +13,7 @@ The idea of storing dot files in a git repository is not a new one. The problem 
 
 Dotman is small program which connects to given git repository, clones it and shares it over http, with bash friendly CLI. You group applications dotfiles by putting them in folders in root of git repo. Folder names become select options in dotmans CLI.
 Dotman supports two dotfiles delivery methods:
- - files copy: each file from selected package is downloaded relative to current user home directory. Requires only bash and curl
+ - file copies: each file from selected package is downloaded relative to current user home directory. Requires only bash and curl
  - git symlinks: if git is present, you can choose to download whole repository. Dotman will create all necessary folders and symlinks. This way you can easily push any changes in dotfiles using standard git.
 
 
@@ -63,7 +63,7 @@ curl localhost:1338 | sh -
 # Setting own dotfiles repository
 Create git repository on server of your choice with folders and dotconfigs inside. Use https://github.com/czoczo/dotman-example-repo as an example. Git repository might be set as public or private - your choice!
 
-Most popular git servers offer at least two possible protocols: HTTP or SSH. Dotman supports both of them. Just remember to use proper prefix when setting URL like on examples below:
+Most git servers offer at least two possible connection protocols: HTTP or SSH. Dotman supports both of them. Just remember to use proper prefix when setting URL like on examples below:
 
 ## HTTP/HTTPS
 Public
@@ -115,7 +115,7 @@ Install packages with tag by using `http://myserver.net/t/tagname` endpoint. It'
 Every now and then, there is a need to run some commands after modifying dotconfigs. Whether it's a window manager configuration reload, or evaluating some dynamic values for your config - doesn't matter! Just script it in bash, name it dotautorun.sh and put it inside git folder holding your applications dotfiles. It will be executed during deployment of that package. Simple.
 
 ## Useful endpoints
-Dotmans CLI is pretty elastic. Some endpoints can be useful outside CLI. You can call them using curl. If you use secret, pass it inside HTTP header like in examples below.
+Dotmans CLI is pretty elastic. Some HTTP endpoints can be useful outside CLI. You can call them using curl. If you use secret, pass it inside HTTP header like in examples below.
 
 ### Update installed dotfiles
 Want to update all dotfiles managed by dotman on your workstation? Run following:
@@ -159,4 +159,4 @@ All configuration variables can be provided either as environment variables or a
 
 # Security
  
- I know what some of you are thinking now: `http://whatever.net | sh -` pattern looks ugly, especially to security guys. That's I want to make it clear: unless you're doing test on disposable virtual machine, or doing a test on localhost, you're forbidden to use it without correctly configured TLS infront of dotman. For crying out load, it's your shell you're giving access to. You wouldn't let random guy put commands on your terminal while you don't watch,, would you?
+ I know what some of you are thinking now: `http://whatever.net | sh -` pattern looks ugly, especially to security guys. That's I want to make it clear: unless you're doing test on disposable virtual machine, or doing a test on localhost, you're forbidden to use it without correctly configured TLS infront of dotman. For crying out load, it's your shell you're giving access to. You wouldn't let random guy put commands on your terminal while you don't watch, would you?

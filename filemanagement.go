@@ -61,6 +61,11 @@ func gitSync(auth transport.AuthMethod, url string, directory string) {
     // clear data
     os.RemoveAll(directory)
 
+    // if prefix ssh:// remove from connection string
+    if strings.HasPrefix(url,"ssh://") {
+        url = strings.Replace(url,"ssh://","",1)
+    }
+
     // clone the given repository to the given directory
     Info("git clone %s %s", url, directory)
 

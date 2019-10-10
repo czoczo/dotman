@@ -88,7 +88,8 @@ func main() {
     }
 
     // if url not valid
-    re := regexp.MustCompile("(ssh|https?)://([^/$]+)")
+    re := regexp.MustCompile("(ssh|https?)://([^/$]+)(.+)")
+    urlMatch := re.FindStringSubmatch(url)
     if re.MatchString(url) == false {
         flag.PrintDefaults()
         fmt.Println()
@@ -97,20 +98,21 @@ func main() {
     }
 
 
+    // get URL without protocol prefix for git clone operation
+    remoteHostSSH := urlMatch[2]
+
     // extract username
-    re = regexp.MustCompile("(ssh|https?)://(.+)@([^/$]+)(.*)")
-    urlMatch := re.FindStringSubmatch(url)
+    re = regexp.MustCompile("(ssh|https?)://(.+)@([^/$]+)")
+    urlMatch = re.FindStringSubmatch(url)
     if len(urlMatch) > 2 {
         username = urlMatch[2]
     }
 
-    // extracte remote host address with port for ssh connection case
-    //urlMatch := re.FindStringSubmatch(url)
-    remoteHostSSH := urlMatch[3]
-
-    // get URL without protocol prefix for git clone operation
-    gitAddr := urlMatch[3] + urlMatch[4]
-    match, _ := regexp.MatchString(".+:[0-9]+$",remoteHostSSH)
+    match, _ := regexp.MatchString(".+@.+$",remoteHostSSH)
+    if match == true {
+        remoteHostSSH = strings.Split(remoteHostSSH,"@")[1]
+    }
+    match, _ = regexp.MatchString(".+:[0-9]+$",remoteHostSSH)
     if match == false {
         remoteHostSSH = strings.Split(remoteHostSSH,":")[0] + ":22"
     }
@@ -169,10 +171,11 @@ func main() {
     // sync file server directory with remote git repository
 
     // obatin auth object
+    log.Println("remoteHost: " + remoteHostSSH)
     auth = getAuth(url, sshkey, remoteHostSSH, sshAccept)
 
     // do actual sync
-    gitSync(auth, gitAddr, directory)
+    gitSync(auth, url, directory)
 
     // retrive repository folders mapped with alphabet characters
     foldersMap = getFoldersMap(directory, alphabet)
