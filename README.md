@@ -21,7 +21,6 @@ Dotman supports two dotfiles delivery methods:
 
 Underneath demo has following file structure in connected git repository:
 
-<center>
 ```
 .
 ├── bashrc
@@ -46,7 +45,6 @@ Underneath demo has following file structure in connected git repository:
 ```
 
 ![dotman demo](demo.gif)
-</center>
 
 # Quick start
 download by either:
