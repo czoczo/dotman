@@ -19,7 +19,7 @@ Dotman supports two dotfiles delivery methods:
 
 # Less talk, more action!
 
-In Underneath demo I use dotman to download bash, mc, screen and vim configs using file copies method. Then I alter it to git install method. Dotman has following file structure in connected git repository:
+In underneath demo dotman is used to download bash, mc, screen and vim configs using file copies method. Then it's used to switch to git install method. Dotman iserver has following file structure in connected git repository:
 
 ```
 .
@@ -53,6 +53,7 @@ download by either:
 - clone this repository and use `docker-compose build` to create a container
 
 if running binary start with: `./dotman -url https://github.com/czoczo/dotman-example-repo`
+
 if using container start with: `docker-compose up`
 
 Yup, that's it! Check by running:
