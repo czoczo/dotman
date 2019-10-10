@@ -20,6 +20,7 @@ Dotman supports two dotfiles delivery methods:
 # Less talk, more action!
 
 Underneath demo has following file structure in connected git repository:
+
 <center>
 ```
 .
