@@ -19,7 +19,7 @@ Dotman supports two dotfiles delivery methods:
 
 # Less talk, more action!
 
-Underneath demo has following file structure in connected git repository:
+In Underneath demo I use dotman to download bash, mc, screen and vim configs using file copies method. Then I alter it to git install method. Dotman has following file structure in connected git repository:
 
 ```
 .
