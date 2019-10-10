@@ -43,6 +43,7 @@ Underneath demo has following file structure in connected git repository:
 │   └── .vimrc
 └── README.md
 ```
+
 ![dotman demo](demo.gif)
 </center>
 
