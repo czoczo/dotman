@@ -165,3 +165,6 @@ I understand some of you, especially those more security saavy, may not be happy
 
 ## Reporting
 If you discover any security-related issues, please email [email@todo.com] instead of using the issue tracker.
+
+# License
+The [todo licence]. Please see [License File](link) for more information.
