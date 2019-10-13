@@ -1,3 +1,5 @@
+![dotman demo](demo.gif)
+
 # Introduction to Dotman
 
 If you ever SSH'ed to a brand new server and wished you already had your dot files available, you just found the right tool.
@@ -40,8 +42,6 @@ In this demo we use Dotman to download Bash, MC, Screen and Vim configuration fi
 │   └── .vimrc
 └── README.md
 ```
-
-![dotman demo](demo.gif)
 
 # Quick start
 
