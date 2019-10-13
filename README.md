@@ -158,5 +158,10 @@ All configuration variables can be provided either as environment variables or a
 | SECRET | -secret | - | - | If set, Bash CLI will ask for secret and all dotfiles will be protected by it. |
 | URLMASK | -urlmask | string | - | If using containers your URL variable might be different than the one you would like to be set when using git & symlink install method. Use this variable to override URL in cloned repository. |
 
-# Security considerations
+# Security
+
+## Considrations
 I understand some of you, especially those more security saavy, may not be happy with the `http://yourdomain.test | sh -` pattern. Therefore I would like to make it very clear that, unless you are doing a test on disposable VM or doing a test on localhost, you MUST NOT use this pattern without correctly configured TLS in front of Dotman.
+
+## Reporting
+If you discover any security-related issues, please email [email@todo.com] instead of using the issue tracker.
