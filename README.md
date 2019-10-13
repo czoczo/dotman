@@ -118,46 +118,45 @@ Every now and then, there is a need to run some commands after modifying dotconf
 ## Useful endpoints
 Dotman's CLI is pretty elastic. Some HTTP endpoints can be useful outside CLI. You can call them using curl. If you use secret, pass it inside HTTP header like in examples below.
 
-### Update installed dotfiles
-Want to update all dotfiles managed by dotman on your workstation? Run following:
+### Update configuration files
+To update all local configuration files managed by Dotman, run:
 ```
 curl -H"secret:myterriblesecret" http://myserver.net/update
 ```
 
-### Make server refresh served repository
-You made changes to dotfiles in repo? Refresh files server on dotman by running:
+### Update cache
+After making changes to your repository, you can refresh the file server of Dotman by running:
 ```
 curl -H"secret:myterriblesecret" http://myserver.net/sync
 ```
 
 ## Keep up with repo - what is auto update?
-One of dotman CLI menu options is enabling dotfiles auto updates. This simple function, adds curl request to `/update` endpoint to cron, so your dotfiles will be updated every hour. Disable by either deleting line in crontab, or using "disable auto update" option.
+One of Dotman's menu options is enabling dotfiles auto update. This function adds curl request to `/update` endpoint to cron, so your configuration files will be updated every hour. Disable by either deleting line in crontab or using "disable auto update" option.
 
 # Other solutions comparison
-Dotman is not the first attempt of humanity to manage dotfiles. In fact there are dozens of such applications/frameworks. If you haven't yet seen website http://dotfiles.github.io/, I strongly advise you to check it out. Maybe some other app will suit your needs better.
+Dotman is not the first attempt of humanity to manage dotfiles. In fact there are dozens of such applications/frameworks. If you haven't yet seen website http://dotfiles.github.io/, I strongly recommend you check it out. Maybe a different tool will suit your needs better.
 
-But before you go, I want to point out some strengths of dotman:
-* it doesn't require git on the host you're want to deploy dotfiles to
-* you don't have to remember any commands/it has intuitive CLI
+But before you go, I want to point out some strengths of Dotman:
+* it doesn't require Git on the host you want to deploy dotfiles to
+* you don't have to remember any commands - it has intuitive interface
 * almost effortless configuration
-* server written in golang/portable binary
+* server written in golang - portable binary
 * capable of autoupdating dotfiles using cron 
-* when installed, leverage standard git workflow to update dotfiles content
+* when installed, leverage standard Git workflow to update dotfile contents
 
 # Configuration in depth
-All configuration variables can be provided either as environment variables or as program arguments. The choice is yours. Here's a description of all of them:
+All configuration variables can be provided either as environment variables or as program arguments. Here's a description of all of them:
 
 | Environment variable | Argument | Type | Default Value | Description |
 | ----- | ----- | ----- | ----- | ----- |
-| URL | -url | string | - | URL to git repository containing dot files. Can be either http://, https:// or ssh:// protocol |
-| BASEURL | -baseurl | string | http://127.0.0.1:1338" | URL prefix which will be used for generating download links. It should be the exact URL under which dotman is served. Use https if you put dotman behind SSL terminator |
-| SSHKEY | -sshkey | string | ssh_data/id_rsa | Path to key used to connect git repository when using ssh protocol |
-| SSHACCEPT | -sshaccept | boolean | - | Whether to add ssh remote servers key to known hosts file. Use it whenever you're binding dotman with a new repository over ssh |
+| URL | -url | string | - | URL to git repository containing your configuration files. Can be either http://, https:// or ssh://. |
+| BASEURL | -baseurl | string | http://127.0.0.1:1338" | URL prefix which will be used for generating download links. It should be the exact URL under which Dotman is served. Use https if you put Dotman behind SSL terminator. |
+| SSHKEY | -sshkey | string | ssh_data/id_rsa | Path to SSH key used to connect to git repository when using SSH connection. |
+| SSHACCEPT | -sshaccept | boolean | - | Whether to add SSH remote server key to known_hosts. Use it whenever you are binding Dotman with a new repository over SSH. |
 | PASSWORD | -password | string | - | Password to use when connecting to git repository over HTTP protocol |
-| PORT | -port | integer | 1338 | Port on which dotman should listen to. If you're going production, you're most likely to set port 80 |
-| SECRET | -secret | string | - | If set, bash CLI will ask for secret and all dotfiles will be protected by it |
-| URLMASK | -urlmask | string | - | If using containers, your URL variable might be different, than the one you would like to be set when using git & symlink install method. Use this variable to override URL in cloned repo |
+| PORT | -port | integer | 1338 | Port on which Dotman should listen to. If you are using it in production, you will most likely set it to port 80. If you pick a different port, make sure your firewall allows incoming connections. |
+| SECRET | -secret | - | - | If set, Bash CLI will ask for secret and all dotfiles will be protected by it. |
+| URLMASK | -urlmask | string | - | If using containers your URL variable might be different than the one you would like to be set when using git & symlink install method. Use this variable to override URL in cloned repository. |
 
-# Security
- 
- I know what some of you are thinking now: `http://whatever.net | sh -` pattern looks ugly, especially to security guys. That's I want to make it clear: unless you're doing test on disposable virtual machine, or doing a test on localhost, you're forbidden to use it without correctly configured TLS infront of dotman. For crying out load, it's your shell you're giving access to. You wouldn't let random guy put commands on your terminal while you don't watch, would you?
+# Security considerations
+I understand some of you, especially those more security saavy, may not be happy with the `http://yourdomain.test | sh -` pattern. Therefore I would like to make it very clear that, unless you are doing a test on disposable VM or doing a test on localhost, you MUST NOT use this pattern without correctly configured TLS in front of Dotman.
