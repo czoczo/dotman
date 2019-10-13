@@ -1,25 +1,24 @@
-# A must-be catchy header
+![dotman demo](demo.gif)
 
-First ssh login to new server? Miss your dot files? Want to be able to get them fast and manage them almost effortlessly? Keep reading! 
+# Introduction to Dotman
 
-# Problem?
+If you ever SSH'ed to a brand new server and wished you already had your dot files available, you just found the right tool.
 
-Dotman tries to solve a problem of managing personal dot files (or any kind of 'git-able' data meant to live in users homedir for sake being).
+While dotfiles were the original inspiration for this tool, Dotman is not limited to those. Any files (usually of configuration nature) suitable to be stored in a Git repository with intention of placing them in users home directory are suitable for use with the tool.
 
+The idea of storing configuration files in a Git repository is not a new one. However, the problem arises when a destination machine does not have Git installed or you only require a subset of your configuration set.
 
-The idea of storing dot files in a git repository is not a new one. The problem arises when destination machine doesn't have git installed, or you realise that you only want a subset of your configuration. 
+# How it works
 
-# Can I haz solution?
+Dotman is a small program which connects to selected Git repository, clones it and shares it over http, with Bash friendly CLI. You group application dotfiles by putting them in folders in the root of a Git repository. Folder names become select options in Dotman's CLI.
 
-Dotman is small program which connects to given git repository, clones it and shares it over http, with bash friendly CLI. You group applications dotfiles by putting them in folders in root of git repo. Folder names become select options in dotmans CLI.
-Dotman supports two dotfiles delivery methods:
- - file copies: each file from selected package is downloaded relative to current user home directory. Requires only bash and curl
- - git symlinks: if git is present, you can choose to download whole repository. Dotman will create all necessary folders and symlinks. This way you can easily push any changes in dotfiles using standard git.
+Dotman supports two configuration file delivery methods:
+ - File copies: each file from selected package is downloaded relative to current user's home directory. Requires only Bash and cURL.
+ - Git symlinks: if git is present, you can choose to download the whole repository. Dotman will create all necessary folders and symlinks. This way you can easily push any changes to your configuration files using standard Git.
 
+# Demo
 
-# Less talk, more action!
-
-In underneath demo dotman is used to download bash, mc, screen and vim configs using file copies method. Then it's used to switch to git install method. Dotman iserver has following file structure in connected git repository:
+In this demo we use Dotman to download Bash, MC, Screen and Vim configuration files using the file copy method. We then switch to the Git symlink method. Dotman server has the following file structure in the connected Git repository:
 
 ```
 .
@@ -44,27 +43,28 @@ In underneath demo dotman is used to download bash, mc, screen and vim configs u
 └── README.md
 ```
 
-![dotman demo](demo.gif)
-
 # Quick start
-download by either:
+
+To get Dotman, you can use one of the following methods:
 - download dotman binary from https://github.com/czoczo/dotman/releases
 - clone this repository and compile with `go build`
 - clone this repository and use `docker-compose build` to create a container
 
-if running binary start with: `./dotman -url https://github.com/czoczo/dotman-example-repo`
+If running the binary, start with:
+`./dotman -url https://github.com/czoczo/dotman-example-repo`
 
-if using container start with: `docker-compose up`
+If using the container, start with:
+`docker-compose up`
 
-Yup, that's it! Check by running:
+That's it! Check it by running:
 ```
 curl localhost:1338 | sh -
 ```
 
 # Setting own dotfiles repository
-Create git repository on server of your choice with folders and dotconfigs inside. Use https://github.com/czoczo/dotman-example-repo as an example. Git repository might be set as public or private - your choice!
+Create a Git repository on a server of your choice with preferred folder structure and your conguration files. You can use https://github.com/czoczo/dotman-example-repo as an example. Git repository might be set as public or private - your choice!
 
-Most git servers offer at least two possible connection protocols: HTTP or SSH. Dotman supports both of them. Just remember to use proper prefix when setting URL like on examples below:
+Most git servers offer at least two possible connection protocols: HTTP or SSH - both are supported by Dotman. Just remember to use proper prefix when setting URL like on the examples below.
 
 ## HTTP/HTTPS
 Public
@@ -83,19 +83,19 @@ PASSWORD=repository_access_password
 URL=ssh://git@github.com:username/dotfilesrepo.git
 ```
 
-Now just run dotman and see the magic happen.
-When using ssh protocol,dotman will generate SSH key pair and print public key on standard output. Allow it to access your repository in order to use ssh connection.
-If you're connecting to given repository for a first time, you're going to get this error: "error: ssh: handshake failed: knownhosts: key is unknown". Run dotman with `-sshaccept=true` once, to add remote key to known hosts.
+Now just run `dotman` and let the magic happen. When using ssh protocol, Dotman will generate SSH key pair and print the public key on standard output. Allow this key to access your repository in order to use the SSH connection.
 
-Make sure dotman loaded repository correctly, by viewing the logs. If so, you're ready to go!
+If you're connecting to given repository for the first time, you're going to get this error: "error: ssh: handshake failed: knownhosts: key is unknown". Run `dotman` with `-sshaccept=true` once, to add remote key to known hosts.
 
-# Additional features
-Except basic usage, dotman has some optional features, that will make your dotfiles deployment even more sexy.
+Make sure dotman loaded the repository correctly by viewing the logs. If it has, you're ready to go!
 
-## Want faster? - or, how tags work. 
-Often you'll install same group of packages on different kind of machines. For instance, you'll probably want to install vim and bash configuration on any host you work on, but you wouldn't need mplayer/mpv at work (right?).
+# Extra features
 
-Dotman allows you to group packages and install them using single tag. To configure tags, put config.yaml file in root of your git repository containing dictionary. Each entry should have tagname as key, and list of folders in repository (packages) as value, like so:
+## Grouping with tags
+
+You will probably install the same group of packages on diffent machines. For instance, installing vim and bash configuration files go along nicely, but you may not want mplayer/mpv at work (right ;)?).
+
+Dotman lets you group packages and install them at once using a tag. To configure tags, put config.yaml file in root of your Git repository. Each entry should have a tagname as key and list of folders in repository (packages) as value, like so:
 ```
 tags:
   work:
@@ -110,54 +110,61 @@ tags:
     - vim
 ```
 
-Install packages with tag by using `http://myserver.net/t/tagname` endpoint. It'll skip menu and go straight to downloading files.
+Install packages with a tag by using `http://myserver.net/t/tagname` endpoint. It'll skip menu and go straight to downloading files.
 
 ## Eliminate manual work - word or two about autorun
-Every now and then, there is a need to run some commands after modifying dotconfigs. Whether it's a window manager configuration reload, or evaluating some dynamic values for your config - doesn't matter! Just script it in bash, name it dotautorun.sh and put it inside git folder holding your applications dotfiles. It will be executed during deployment of that package. Simple.
+Every now and then, there is a need to run some commands after modifying dotconfigs. Whether it's a window manager configuration reload or evaluating some dynamic values for your config! Just script it in bash, name it dotautorun.sh and put it inside git folder holding your applications dotfiles. It will be automatically executed during the deployment of that package.
 
 ## Useful endpoints
-Dotmans CLI is pretty elastic. Some HTTP endpoints can be useful outside CLI. You can call them using curl. If you use secret, pass it inside HTTP header like in examples below.
+Dotman's CLI is pretty elastic. Some HTTP endpoints can be useful outside CLI. You can call them using curl. If you use secret, pass it inside HTTP header like in examples below.
 
-### Update installed dotfiles
-Want to update all dotfiles managed by dotman on your workstation? Run following:
+### Update configuration files
+To update all local configuration files managed by Dotman, run:
 ```
 curl -H"secret:myterriblesecret" http://myserver.net/update
 ```
 
-### Make server refresh served repository
-You made changes to dotfiles in repo? Refresh files server on dotman by running:
+### Update cache
+After making changes to your repository, you can refresh the file server of Dotman by running:
 ```
 curl -H"secret:myterriblesecret" http://myserver.net/sync
 ```
 
 ## Keep up with repo - what is auto update?
-One of dotman CLI menu options is enabling dotfiles auto updates. This simple function, adds curl request to `/update` endpoint to cron, so your dotfiles will be updated every hour. Disable by either deleting line in crontab, or using "disable auto update" option.
+One of Dotman's menu options is enabling dotfiles auto update. This function adds curl request to `/update` endpoint to cron, so your configuration files will be updated every hour. Disable by either deleting line in crontab or using "disable auto update" option.
 
 # Other solutions comparison
-Dotman is not the first attempt of humanity to manage dotfiles. In fact there are dozens of such applications/frameworks. If you haven't yet seen website http://dotfiles.github.io/, I strongly advise you to check it out. Maybe some other app will suit your needs better.
+Dotman is not the first attempt of humanity to manage dotfiles. In fact there are dozens of such applications/frameworks. If you haven't yet seen website http://dotfiles.github.io/, I strongly recommend you check it out. Maybe a different tool will suit your needs better.
 
-But before you go, I want to point out some strengths of dotman:
-* it doesn't require git on the host you're want to deploy dotfiles to
-* you don't have to remember any commands/it has intuitive CLI
+But before you go, I want to point out some strengths of Dotman:
+* it doesn't require Git on the host you want to deploy dotfiles to
+* you don't have to remember any commands - it has intuitive interface
 * almost effortless configuration
-* server written in golang/portable binary
+* server written in golang - portable binary
 * capable of autoupdating dotfiles using cron 
-* when installed, leverage standard git workflow to update dotfiles content
+* when installed, leverage standard Git workflow to update dotfile contents
 
 # Configuration in depth
-All configuration variables can be provided either as environment variables or as program arguments. The choice is yours. Here's a description of all of them:
+All configuration variables can be provided either as environment variables or as program arguments. Here's a description of all of them:
 
 | Environment variable | Argument | Type | Default Value | Description |
 | ----- | ----- | ----- | ----- | ----- |
-| URL | -url | string | - | URL to git repository containing dot files. Can be either http://, https:// or ssh:// protocol |
-| BASEURL | -baseurl | string | http://127.0.0.1:1338" | URL prefix which will be used for generating download links. It should be the exact URL under which dotman is served. Use https if you put dotman behind SSL terminator |
-| SSHKEY | -sshkey | string | ssh_data/id_rsa | Path to key used to connect git repository when using ssh protocol |
-| SSHACCEPT | -sshaccept | boolean | - | Whether to add ssh remote servers key to known hosts file. Use it whenever you're binding dotman with a new repository over ssh |
+| URL | -url | string | - | URL to git repository containing your configuration files. Can be either http://, https:// or ssh://. |
+| BASEURL | -baseurl | string | http://127.0.0.1:1338" | URL prefix which will be used for generating download links. It should be the exact URL under which Dotman is served. Use https if you put Dotman behind SSL terminator. |
+| SSHKEY | -sshkey | string | ssh_data/id_rsa | Path to SSH key used to connect to git repository when using SSH connection. |
+| SSHACCEPT | -sshaccept | boolean | - | Whether to add SSH remote server key to known_hosts. Use it whenever you are binding Dotman with a new repository over SSH. |
 | PASSWORD | -password | string | - | Password to use when connecting to git repository over HTTP protocol |
-| PORT | -port | integer | 1338 | Port on which dotman should listen to. If you're going production, you're most likely to set port 80 |
-| SECRET | -secret | string | - | If set, bash CLI will ask for secret and all dotfiles will be protected by it |
-| URLMASK | -urlmask | string | - | If using containers, your URL variable might be different, than the one you would like to be set when using git & symlink install method. Use this variable to override URL in cloned repo |
+| PORT | -port | integer | 1338 | Port on which Dotman should listen to. If you are using it in production, you will most likely set it to port 80. If you pick a different port, make sure your firewall allows incoming connections. |
+| SECRET | -secret | - | - | If set, Bash CLI will ask for secret and all dotfiles will be protected by it. |
+| URLMASK | -urlmask | string | - | If using containers your URL variable might be different than the one you would like to be set when using git & symlink install method. Use this variable to override URL in cloned repository. |
 
 # Security
- 
- I know what some of you are thinking now: `http://whatever.net | sh -` pattern looks ugly, especially to security guys. That's I want to make it clear: unless you're doing test on disposable virtual machine, or doing a test on localhost, you're forbidden to use it without correctly configured TLS infront of dotman. For crying out load, it's your shell you're giving access to. You wouldn't let random guy put commands on your terminal while you don't watch, would you?
+
+## Considrations
+I understand some of you, especially those more security saavy, may not be happy with the `http://yourdomain.test | sh -` pattern. Therefore I would like to make it very clear that, unless you are doing a test on disposable VM or doing a test on localhost, you MUST NOT use this pattern without correctly configured TLS in front of Dotman.
+
+## Reporting
+If you discover any security-related issues, please email [email@todo.com] instead of using the issue tracker.
+
+# License
+The [todo licence]. Please see [License File](link) for more information.
