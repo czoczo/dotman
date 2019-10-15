@@ -165,6 +165,9 @@ All configuration variables can be provided either as environment variables or a
 ## Considrations
 I understand some of you, especially those more security saavy, may not be happy with the `http://yourdomain.test | sh -` pattern. Therefore I would like to make it very clear that, unless you are doing a test on disposable VM or doing a test on localhost, you MUST NOT use this pattern without correctly configured TLS in front of Dotman.
 
+## Password protection
+Sometimes you might find yourself storing some sensitive data in configuration files, or not being too keen to share them publicly for any reason. For such cases, you can set 'secret' option. It will make Dotman ask for this secret when trying to access CLI. In fact, it will expect secret string to appear in header of any other HTTP request made to Dotman, thus protecting your configuration files from being viewed by unauthorized users. 
+
 ## Reporting
 If you discover any security-related issues, please email [mr.czoczo@gmail.com] instead of using the issue tracker.
 
