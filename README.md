@@ -158,12 +158,16 @@ All configuration variables can be provided either as environment variables or a
 | PASSWORD | -password | string | - | Password to use when connecting to git repository over HTTP protocol |
 | PORT | -port | integer | 1338 | Port on which Dotman should listen to. If you are using it in production, you will most likely set it to port 80. If you pick a different port, make sure your firewall allows incoming connections. |
 | SECRET | -secret | string | - | If set, Bash CLI will ask for secret and all dotfiles will be protected by it. |
+| PULLINTERVAL | -pullinterval | integer | 0 | Amount of seconds to wait between pull check for updates from remote repo. Default 0 which disables this function |
 | URLMASK | -urlmask | string | - | If using containers your URL variable might be different than the one you would like to be set when using git & symlink install method. Use this variable to override URL in cloned repository. |
 
 # Security
 
 ## Considrations
 I understand some of you, especially those more security saavy, may not be happy with the `http://yourdomain.test | sh -` pattern. Therefore I would like to make it very clear that, unless you are doing a test on disposable VM or doing a test on localhost, you MUST NOT use this pattern without correctly configured TLS in front of Dotman.
+
+## Password protection
+Sometimes you might find yourself storing some sensitive data in configuration files, or not being too keen to share them publicly for any reason. For such cases, you can set 'secret' option. It will make Dotman ask for this secret when trying to access CLI. In fact, it will expect secret string to appear in header of any other HTTP request made to Dotman, thus protecting your configuration files from being viewed by unauthorized users. 
 
 ## Reporting
 If you discover any security-related issues, please email [mr.czoczo@gmail.com] instead of using the issue tracker.
