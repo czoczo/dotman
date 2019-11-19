@@ -75,7 +75,7 @@ func main() {
     flag.IntVar(&port, "port", 1338, "servers listening port")
     flag.StringVar(&urlMask, "urlmask", "", "mask git repository URL in local repo (only git install method)")
     flag.StringVar(&baseurl, "baseurl", "http://127.0.0.1:1338", "URL for generating download commands.")
-    flag.IntVar(&pullInterval, "pullinterval", 0, "time in seconds between repo pull for updates check. default to 0 (siabled)")
+    flag.IntVar(&pullInterval, "pullinterval", 0, "time in seconds between repo pull for updates check. default to 0 (disabled)")
 	flag.Parse()
 
     // validate configuration
