@@ -115,7 +115,7 @@ tags:
 Install packages with a tag by using `http://myserver.net/t/tagname` endpoint. It'll skip menu and go straight to downloading files.
 
 ## Eliminate manual work - word or two about autorun
-Every now and then, there is a need to run some commands after modifying dotconfigs. Whether it's a window manager configuration reload or evaluating some dynamic values for your config! Just script it in bash, name it dotautorun.sh and put it inside git folder holding your applications dotfiles. It will be automatically executed during the deployment of that package.
+Every now and then, there is a need to run some commands after modifying dotconfigs. Whether it's a window manager configuration reload or evaluating some dynamic values for your config, just script it in bash! Name it dotautorun.sh and put it inside git folder holding your applications dotfiles. It will be automatically executed during the deployment of that package.
 
 ## Useful endpoints
 Dotman's CLI is pretty elastic. Some HTTP endpoints can be useful outside CLI. You can call them using curl. If you use secret, pass it inside HTTP header like in examples below.
@@ -158,6 +158,7 @@ All configuration variables can be provided either as environment variables or a
 | PASSWORD | -password | string | - | Password to use when connecting to git repository over HTTP protocol |
 | PORT | -port | integer | 1338 | Port on which Dotman should listen to. If you are using it in production, you will most likely set it to port 80. If you pick a different port, make sure your firewall allows incoming connections. |
 | SECRET | -secret | string | - | If set, Bash CLI will ask for secret and all dotfiles will be protected by it. |
+| PULLINTERVAL | -pullinterval | integer | 0 | Amount of time in seconds to wait between checks for new commits in remote repository. Defaults to 0 (disabled) |
 | URLMASK | -urlmask | string | - | If using containers your URL variable might be different than the one you would like to be set when using git & symlink install method. Use this variable to override URL in cloned repository. |
 
 # Security

@@ -35,6 +35,7 @@ var port int
 // server config
 // URL (e.g. https://exmaple.org:1338/dotfiles) under to create links to resources
 var baseurl string
+var pullInterval int
 var urlMask string
 
 // set of characters to assign packages to
@@ -74,6 +75,7 @@ func main() {
     flag.IntVar(&port, "port", 1338, "servers listening port")
     flag.StringVar(&urlMask, "urlmask", "", "mask git repository URL in local repo (only git install method)")
     flag.StringVar(&baseurl, "baseurl", "http://127.0.0.1:1338", "URL for generating download commands.")
+    flag.IntVar(&pullInterval, "pullinterval", 0, "time in seconds between repo pull for updates check. default to 0 (disabled)")
 	flag.Parse()
 
     // validate configuration
@@ -170,12 +172,15 @@ func main() {
 
     // sync file server directory with remote git repository
 
+    // initiate variable for holding local repo HEAD
+    localHead := ""
+
     // obatin auth object
     log.Println("remoteHost: " + remoteHostSSH)
     auth = getAuth(url, sshkey, remoteHostSSH, sshAccept)
 
     // do actual sync
-    gitSync(auth, url, directory)
+    localHead = gitSync(auth, url, directory).Hash.String()
 
     // retrive repository folders mapped with alphabet characters
     foldersMap = getFoldersMap(directory, alphabet)
@@ -186,6 +191,11 @@ func main() {
     // serve locally cloned repo with dotfiles through HTTP
     // secured with secret and file blacklisting
     fs := checkSecretThenServe(http.FileServer(fileHidingFileSystem{http.Dir(directory)}))
+
+    // start pull loop thread checking for updates on remote
+    if pullInterval > 0 {
+        watchdog(auth, url, directory, localHead)
+    }
 
     // handle being served as a subfolder 
     basere := regexp.MustCompile("^https?://[^/]+(.+)?")
@@ -239,7 +249,8 @@ func main() {
         // handle synchronization endpoint - pull git repo
         if requestPath == folder + "/sync" {
             commit := gitPull(directory)
-            fmt.Fprintf(w, "echo -e \"\\n" + commit + "\"\n")
+            localHead = commit.Hash.String()
+            fmt.Fprintf(w, "echo -e \"\\n" + commit.String() + "\"\n")
             fmt.Fprintf(w, "echo -e \"\\n  Repository synchronised.\"")
             // populate tags
             populateTagsMap(foldersMap)

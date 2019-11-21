@@ -7,12 +7,15 @@ import (
     "os"
     "fmt"
     "log"
+    "time"
     "regexp"
     "strings"
     "io/ioutil"
     "golang.org/x/crypto/ssh"
     "golang.org/x/crypto/ssh/knownhosts"
     "gopkg.in/src-d/go-git.v4/plumbing/transport"
+    "gopkg.in/src-d/go-git.v4/storage/memory"
+    "gopkg.in/src-d/go-git.v4/plumbing/object"
 	git "gopkg.in/src-d/go-git.v4"
     gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
     githttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
@@ -27,8 +30,57 @@ func fileExists(filename string) bool {
     return !info.IsDir()
 }
 
+// in memory repo clone
+func gitMemClone(auth transport.AuthMethod, url string) *object.Commit {
+
+    // if prefix ssh:// remove from connection string
+    if strings.HasPrefix(url,"ssh://") {
+        url = strings.Replace(url,"ssh://","",1)
+    }
+
+    // clone the given repository to the given directory
+    log.Println("checking repository " + url + " for updates")
+
+    gitr, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
+        Auth: auth,
+        URL:      url,
+    })
+
+    CheckIfError(err)
+
+    // ... retrieving the branch being pointed by HEAD
+    ref, err := gitr.Head()
+    CheckIfError(err)
+    // ... retrieving the commit object
+    commit, err := gitr.CommitObject(ref.Hash())
+    CheckIfError(err)
+
+    return commit
+}
+
+// loop for pull-type checking of updates on remote repo
+func watchdog(auth transport.AuthMethod, url string, directory string, localHead string) {
+    log.Println("Pull watchdog for changes on remote enabled.")
+    go func() {
+        var remote *object.Commit
+
+        // run forever
+        for {
+            // sleep for amount of interval{
+            time.Sleep(time.Duration(pullInterval) * time.Second)
+
+            // get remote head and compare to local
+            remote = gitMemClone(auth, url)
+            if remote.Hash.String() != localHead {
+                // if different update local
+                gitSync(auth, url, directory)
+            }
+        }
+    }()
+}
+
 // git pull method used to sync shared folder
-func gitPull(directory string) string {
+func gitPull(directory string) *object.Commit {
 
     // we instance\iate a new repository targeting the given path (the .git folder)
     gitr, err := git.PlainOpen(directory)
@@ -39,7 +91,7 @@ func gitPull(directory string) string {
     CheckIfError(err)
 
     // pull the latest changes from the origin remote and merge into the current branch
-    Info("git pull origin")
+    log.Println("git pull origin")
     err = gitw.Pull(&git.PullOptions{
         Auth: auth,
         RemoteName: "origin",
@@ -53,11 +105,11 @@ func gitPull(directory string) string {
     CheckIfError(err)
 
     fmt.Println(commit)
-    return commit.String()
+    return commit
 }
 
-// git sync repository by either doing git clone, or pulling if existant
-func gitSync(auth transport.AuthMethod, url string, directory string) {
+// sync git repository by doing git clone
+func gitSync(auth transport.AuthMethod, url string, directory string) *object.Commit {
     // clear data
     os.RemoveAll(directory)
 
@@ -67,9 +119,8 @@ func gitSync(auth transport.AuthMethod, url string, directory string) {
     }
 
     // clone the given repository to the given directory
-    Info("git clone %s %s", url, directory)
+    log.Println("cloning repository " + url + " to folder " + directory)
 
-    log.Println("trying clone")
     gitr, err := git.PlainClone(directory, false, &git.CloneOptions{
         Auth: auth,
         URL:      url,
@@ -78,16 +129,15 @@ func gitSync(auth transport.AuthMethod, url string, directory string) {
 
     CheckIfError(err)
 
-    log.Println("retriving head")
     // ... retrieving the branch being pointed by HEAD
     ref, err := gitr.Head()
     CheckIfError(err)
     // ... retrieving the commit object
-    log.Println("retriving commit object")
     commit, err := gitr.CommitObject(ref.Hash())
     CheckIfError(err)
 
-    fmt.Println(commit)
+    log.Println(commit)
+    return commit
 }
 
 // return auth object based on url
