@@ -29,7 +29,6 @@ gitCloneIfPresent() {
     RESULT=$?; [ $RESULT -eq 0 ] && echo -e "\e[0;32mok\e[0m" || echo -e "\e[0;31merror\e[0m"
     URLMASK="{{.URLMask}}"
     [ -z "$URLMASK" ] && return
-    echo "zmieniam"
     GITCFGFILE="$HOME/.dotman/dotfiles/.git/config"
     GITCFG="$(cat ${GITCFGFILE})"
     rm "$GITCFGFILE"

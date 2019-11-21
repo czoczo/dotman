@@ -39,18 +39,15 @@ func gitMemClone(auth transport.AuthMethod, url string) *object.Commit {
     }
 
     // clone the given repository to the given directory
-    Info("git clone %s %s", url, "memory")
+    log.Println("checking repository " + url + " for updates")
 
-    log.Println("trying clone")
     gitr, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
         Auth: auth,
         URL:      url,
-        Progress: os.Stdout,
     })
 
     CheckIfError(err)
 
-    log.Println("retriving head")
     // ... retrieving the branch being pointed by HEAD
     ref, err := gitr.Head()
     CheckIfError(err)
@@ -76,7 +73,7 @@ func watchdog(auth transport.AuthMethod, url string, directory string, localHead
             remote = gitMemClone(auth, url)
             if remote.Hash.String() != localHead {
                 // if different update local
-                gitPull(directory)
+                gitSync(auth, url, directory)
             }
         }
     }()
@@ -94,7 +91,7 @@ func gitPull(directory string) *object.Commit {
     CheckIfError(err)
 
     // pull the latest changes from the origin remote and merge into the current branch
-    Info("git pull origin")
+    log.Println("git pull origin")
     err = gitw.Pull(&git.PullOptions{
         Auth: auth,
         RemoteName: "origin",
@@ -111,7 +108,7 @@ func gitPull(directory string) *object.Commit {
     return commit
 }
 
-// git sync repository by either doing git clone
+// sync git repository by doing git clone
 func gitSync(auth transport.AuthMethod, url string, directory string) *object.Commit {
     // clear data
     os.RemoveAll(directory)
@@ -122,9 +119,8 @@ func gitSync(auth transport.AuthMethod, url string, directory string) *object.Co
     }
 
     // clone the given repository to the given directory
-    Info("git clone %s %s", url, directory)
+    log.Println("cloning repository " + url + " to folder " + directory)
 
-    log.Println("trying clone")
     gitr, err := git.PlainClone(directory, false, &git.CloneOptions{
         Auth: auth,
         URL:      url,
@@ -133,16 +129,14 @@ func gitSync(auth transport.AuthMethod, url string, directory string) *object.Co
 
     CheckIfError(err)
 
-    log.Println("retriving head")
     // ... retrieving the branch being pointed by HEAD
     ref, err := gitr.Head()
     CheckIfError(err)
     // ... retrieving the commit object
-    log.Println("retriving commit object")
     commit, err := gitr.CommitObject(ref.Hash())
     CheckIfError(err)
 
-    fmt.Println(commit)
+    log.Println(commit)
     return commit
 }
 
