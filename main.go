@@ -35,6 +35,7 @@ var port int
 // server config
 // URL (e.g. https://exmaple.org:1338/dotfiles) under to create links to resources
 var baseurl string
+var installPath string
 var pullInterval int
 var urlMask string
 
@@ -75,6 +76,7 @@ func main() {
     flag.IntVar(&port, "port", 1338, "servers listening port")
     flag.StringVar(&urlMask, "urlmask", "", "mask git repository URL in local repo (only git install method)")
     flag.StringVar(&baseurl, "baseurl", "http://127.0.0.1:1338", "URL for generating download commands.")
+    flag.StringVar(&installPath, "installpath", "$HOME", "Your files will be installed relative to this path.")
     flag.IntVar(&pullInterval, "pullinterval", 0, "time in seconds between repo pull for updates check. default to 0 (disabled)")
 	flag.Parse()
 
@@ -86,6 +88,7 @@ func main() {
     if url == "" {
         log.Println("For server to start you must provide git repository URL containing your dotfiles in folders.")
         log.Println("Use -url switch or URL environment variable.")
+        log.Println("Use -h/-help to show description of all options.")
         os.Exit(1)
     }
 
@@ -157,6 +160,7 @@ func main() {
     // print hello and server configuration
     log.Println("Starting dotman - dot file manager.")
     log.Println("Repository URL: " + url)
+    log.Println("Install path: " + installPath)
     log.Println("GIT username: " + username)
     log.Println("Listening port: " + strconv.Itoa(port))
     log.Println("Download URLs prefix: " + baseurl+"/"+directory)
@@ -221,14 +225,14 @@ func main() {
 
         // handle main request, print main menu script
         if requestPath == folder {
-            views.ServeMain(w, r, baseurl, secret, getLogo())
+            views.ServeMain(w, r, baseurl, installPath, secret, getLogo())
             return
         }
 
         // handle tags endpoint
         commaListRegex, _ := regexp.Compile("^/t/([0-9a-zA-Z]+,?)+$")
         if commaListRegex.MatchString(requestPath) {
-            views.ServeTags(w, r, baseurl, secret, getLogo(), directory, foldersMap, tagsData.Tags)
+            views.ServeTags(w, r, baseurl, installPath, secret, getLogo(), directory, foldersMap, tagsData.Tags)
             return
         }
 
@@ -242,7 +246,7 @@ func main() {
 
         // handle install endpointm print install menu script
         if requestPath == folder + "/install" {
-            views.ServeInstall(w, r, baseurl, client_secret, getLogo(), directory, alphabet, foldersMap, urlMask)
+            views.ServeInstall(w, r, baseurl, installPath, client_secret, getLogo(), directory, alphabet, foldersMap, urlMask)
             return
         }
 
@@ -274,13 +278,13 @@ func main() {
 
         // handle update script endpoint
         if requestPath == folder + "/update" {
-            views.ServeUpdate(w, r, baseurl, client_secret, directory, foldersMap, urlMask)
+            views.ServeUpdate(w, r, baseurl, installPath, client_secret, directory, foldersMap, urlMask)
             return
         }
 
         // handle change of install method script endpoint
         if requestPath == folder + "/changeInstallMethod" {
-            views.ServeChangeInstallMethod(w, r, baseurl, client_secret, directory, foldersMap, urlMask)
+            views.ServeChangeInstallMethod(w, r, baseurl, installPath, client_secret, directory, foldersMap, urlMask)
             return
         }
 

@@ -2,6 +2,7 @@ package views
 
 type passPromptData struct {
     BaseURL string
+    InstallPath string
     Logo string
     ClientSecret string
     EndPoint string

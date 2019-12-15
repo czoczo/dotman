@@ -22,7 +22,7 @@ func fileExists(filename string) bool {
 
 // print bash CASE operator body with available dotfiles folders as options.
 // This CASE operator is used to eihter print options for menu, or output command for installing dotfiles
-func repoPackagesCasePrint(foldersMap map[string]string, byName bool, directory string, baseurl string ) string {
+func repoPackagesCasePrint(foldersMap map[string]string, byName bool, directory string, baseurl string, installPath string ) string {
 
     result := ""
 
@@ -59,7 +59,7 @@ func repoPackagesCasePrint(foldersMap map[string]string, byName bool, directory 
                 // if not, strip absolute path and filename. Print mkdir commands
                 output := strings.TrimPrefix(path, directory+"/"+val+"/")
                 if filepath.Dir(output) != "." {
-                    result = result + "             mkdir -p $HOME/" + filepath.Dir(output)+"\n"
+                    result = result + "             mkdir -p " + installPath + "/" + filepath.Dir(output)+"\n"
                 }
 
                 // print download commands
@@ -67,8 +67,8 @@ func repoPackagesCasePrint(foldersMap map[string]string, byName bool, directory 
                 result = result + "             echo -n \" - "+output+" : \"\n"
 //                result = result + "             curl -sH\"secret:$SECRET\" \"" + baseurl + "/" + path + "\" > \"$HOME/" + output+"\"\n"
                 result = result + "             if [ -d \"$HOME/.dotman/dotfiles\" ]; then\n"
-                result = result + "                 ln -sf \"$HOME/.dotman/" + directory + "/" + val + "/" + output + "\" \"$HOME/" + output+"\"\n             else\n"
-                result = result + "                 test -h \"$HOME/" + output+"\" && rm \"$HOME/" + output+"\"\n                 curl -sH\"secret:$SECRET\" \"" + baseurl + "/" + path + "\" > \"$HOME/" + output+"\"\n             fi\n"
+                result = result + "                 ln -sf \"$HOME/.dotman/" + directory + "/" + val + "/" + output + "\" \"" + installPath + "/" + output+"\"\n             else\n"
+                result = result + "                 test -h \"" + installPath + "/" + output+"\" && rm \"" + installPath + "/" + output+"\"\n                 curl -sH\"secret:$SECRET\" \"" + baseurl + "/" + path + "\" > \"" + installPath + "/" + output+"\"\n             fi\n"
                 result = result + "             RESULT=$?; [ $RESULT -eq 0 ] && echo -e \"\\e[0;32mok\\e[0m\" || echo -e \"\\e[0;31merror\\e[0m\"\n"
 
                 // if not present, add option to managed dotfiles list

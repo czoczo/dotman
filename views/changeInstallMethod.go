@@ -16,10 +16,10 @@ type ChangeInstallMethodData struct {
     URLMask string
 }
 
-func ServeChangeInstallMethod(w http.ResponseWriter, r *http.Request, baseurl string, client_secret string, directory string, foldersMap map[string]string, urlMask string) {
+func ServeChangeInstallMethod(w http.ResponseWriter, r *http.Request, baseurl string, installPath string, client_secret string, directory string, foldersMap map[string]string, urlMask string) {
 
     // generate body of bash case with repo packages
-    repoPackages := repoPackagesCasePrint(foldersMap, true, directory, baseurl)
+    repoPackages := repoPackagesCasePrint(foldersMap, true, directory, baseurl, installPath)
 
     // build data for template
     data := ChangeInstallMethodData{client_secret, repoPackages, baseurl, urlMask}
