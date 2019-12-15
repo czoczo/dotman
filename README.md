@@ -174,4 +174,4 @@ Sometimes you might find yourself storing some sensitive data in configuration f
 If you discover any security-related issues, please email [mr.czoczo@gmail.com] instead of using the issue tracker.
 
 # License
-The [todo licence]. Please see [License File](link) for more information.
+[GNU Affero General Public License v3.0](LICENCE)
