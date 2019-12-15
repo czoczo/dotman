@@ -13,13 +13,13 @@ type TagsInstallData struct {
     Packages string
 }
 
-func ServeTags(w http.ResponseWriter, r *http.Request, baseurl string, secret string, logo string, directory string, foldersMap map[string]string, tagsData map[string][]string) {
+func ServeTags(w http.ResponseWriter, r *http.Request, baseurl string, installPath string, secret string, logo string, directory string, foldersMap map[string]string, tagsData map[string][]string) {
     // check for secret presence in HTTP header
     client_secret := r.Header.Get("secret")
     requestPath := strings.TrimSuffix(r.URL.Path,"/")
 
     // build data for template
-    passTmplData := passPromptData{baseurl, strings.ReplaceAll(logo,"'","'\"'\"'"), client_secret, requestPath}
+    passTmplData := passPromptData{baseurl, installPath, strings.ReplaceAll(logo,"'","'\"'\"'"), client_secret, requestPath}
 
     // set default template 
     tmplSrc := passPromptView
@@ -35,7 +35,7 @@ func ServeTags(w http.ResponseWriter, r *http.Request, baseurl string, secret st
     }
 
     // generate body of bash case with repo packages
-    repoPackages := repoPackagesCasePrint(foldersMap, true, directory, baseurl)
+    repoPackages := repoPackagesCasePrint(foldersMap, true, directory, baseurl, installPath)
 
     // find packages
     tags := strings.Split(strings.Replace(requestPath,"/t/","",-1), ",")

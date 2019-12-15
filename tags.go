@@ -51,7 +51,7 @@ func populateTagsMap(foldersMap map[string]string) {
     for tagkey, tagval := range tagsData.Tags {
 
         // print tag
-        log.Println(tagkey + ": " + strings.Join(tagval,", "))
+        log.Println("Loaded tag - " + tagkey + ": " + strings.Join(tagval,", "))
 
         // find and delete not found packages
 

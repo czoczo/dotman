@@ -16,10 +16,10 @@ type UpdateData struct {
     URLMask string
 }
 
-func ServeUpdate(w http.ResponseWriter, r *http.Request, baseurl string, client_secret string, directory string, foldersMap map[string]string, urlMask string) {
+func ServeUpdate(w http.ResponseWriter, r *http.Request, baseurl string, installPath string, client_secret string, directory string, foldersMap map[string]string, urlMask string) {
 
     // generate body of bash case with repo packages
-    repoPackages := repoPackagesCasePrint(foldersMap, true, directory, baseurl)
+    repoPackages := repoPackagesCasePrint(foldersMap, true, directory, baseurl, installPath)
 
     // build data for template
     data := UpdateData{client_secret, repoPackages, baseurl, urlMask}

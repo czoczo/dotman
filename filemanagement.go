@@ -39,8 +39,6 @@ func gitMemClone(auth transport.AuthMethod, url string) *object.Commit {
     }
 
     // clone the given repository to the given directory
-    log.Println("checking repository " + url + " for updates")
-
     gitr, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
         Auth: auth,
         URL:      url,

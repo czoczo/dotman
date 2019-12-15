@@ -11,12 +11,12 @@ import (
 )
 
 
-func ServeMain(w http.ResponseWriter, r *http.Request, baseurl string, secret string, logo string) {
+func ServeMain(w http.ResponseWriter, r *http.Request, baseurl string, installPath string, secret string, logo string) {
     // check for secret presence in HTTP header
     client_secret := r.Header.Get("secret")
 
     // build data for template
-    data := passPromptData{baseurl, strings.ReplaceAll(logo,"'","'\"'\"'"), client_secret, ""}
+    data := passPromptData{baseurl, installPath, strings.ReplaceAll(logo,"'","'\"'\"'"), client_secret, ""}
 
     // set default template 
     tmplSrc := passPromptView
@@ -50,6 +50,7 @@ printf " \e[35m%s\e[0m: \e[32m%s\e[0m" "managed items" "$(cat ~/.dotman/managed 
 printf " \e[0m | "
 printf " \e[35m%s\e[0m: \e[32m%s\e[0m\n" "auto update" "$AUTOUPDATESTATUS"
 [ -f "$HOME/.dotman/managed" ] && printf "          \e[35m%s\e[0m: \e[32m%s\e[0m\n" "install method used:" "$INSTALLMETHOD"
+printf "          \e[35m%s\e[0m: \e[32m%s\e[0m\n" "files install path:" "{{ .InstallPath }}"
 echo ""
 printf "%2s%s\n\n" "" "Select action:"
 printf "  \e[32m%s\e[0m)\e[35m %-15s\e[0m\n" "i" "select and install dotfiles"

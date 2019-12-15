@@ -152,7 +152,8 @@ All configuration variables can be provided either as environment variables or a
 | Environment variable | Argument | Type | Default Value | Description |
 | ----- | ----- | ----- | ----- | ----- |
 | URL | -url | string | - | URL to git repository containing your configuration files. Can be either http://, https:// or ssh://. |
-| BASEURL | -baseurl | string | http://127.0.0.1:1338" | URL prefix which will be used for generating download links. It should be the exact URL under which Dotman is served. Use https if you put Dotman behind SSL terminator. |
+| BASEURL | -baseurl | string | 'http://127.0.0.1:1338' | URL prefix which will be used for generating download links. It should be the exact URL under which Dotman is served. Use https if you put Dotman behind SSL terminator. |
+| INSTALLPATH | -installpath | string | '$HOME' | Files in your package folders will be installed relative, to this location. |
 | SSHKEY | -sshkey | string | ssh_data/id_rsa | Path to SSH key used to connect to git repository when using SSH connection. |
 | SSHACCEPT | -sshaccept | boolean | - | Whether to add SSH remote server key to known_hosts. Use it whenever you are binding Dotman with a new repository over SSH. |
 | PASSWORD | -password | string | - | Password to use when connecting to git repository over HTTP protocol |
