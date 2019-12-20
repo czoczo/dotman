@@ -16,8 +16,7 @@ func getLogo() string {
                 $$$,.$$$  ,$$$$.  $$$.  $$
 \e[0;35m          .$$$. \e[2;35m$$'$$'$$ ,$$.,$$. $$'$$.$$
 \e[0;35m          $$$$$ \e[2;35m$$    $$ $$$$$$$$ $$  '$$$
-\e[0;35m          '$$$' \e[2;35m$$    $$ $$    $$ $$   '$$\e[0m
-`
+\e[0;35m          '$$$' \e[2;35m$$    $$ $$    $$ $$   '$$  v` + version + "\\e[0m\n"
 }
 
 // CheckIfError should be used to naively panics if an error is not nil.

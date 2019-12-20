@@ -10,31 +10,31 @@ The idea of storing configuration files in a Git repository is not a new one. Ho
 
 # How it works
 
-Dotman is a small program which connects to selected Git repository, clones it and shares it over http, with Bash friendly CLI. You group application dotfiles by putting them in folders in the root of a Git repository. Folder names become select options in Dotman's CLI.
+On typical usage, you'd type `curl yourdomain.net/dotmanendpoint | bash -` in your terminal to show ineteractive menu, where you choose which dotfiles you want to install. You can choose by selecting packages (folders) or by configurable tags.
 
-Dotman supports two configuration file delivery methods:
- - File copies: each file from selected package is downloaded relative to current user's home directory. Requires only Bash and cURL.
- - Git symlinks: if git is present, you can choose to download the whole repository. Dotman will create all necessary folders and symlinks. This way you can easily push any changes to your configuration files using standard Git.
+Configuration and maintanance is also dead simple. You organise your dotfiles, by creating a folder for each application you'd like to manage and putting it's configuration files inside. Store each of such folders in root of single Git repository of your choice. When installing dotfiles using Dotman, content of each selected folder is copied in respect to install path ($HOME be default).
+
+If Git is present, you can choose to download the whole repository. In such case, Dotman creates symlinks to files from selected packages (folders) instead of copying them. This way you can easily push any changes to your configuration files using standard Git.
 
 # Demo
 
-In this demo we use Dotman to download Bash, MC, Screen and Vim configuration files using the file copy method. We then switch to the Git symlink method. Dotman server has the following file structure in the connected Git repository:
+In this demo we use Dotman to download Bash, MC, Screen and Vim configuration files using the file copy method. We then switch to the Git symlink method. The diagram below shows Git repository structure served by dotman on left, and file structure after installation on destination computer on the right.
 
 ```
-.
-├── bashrc
-│   ├── .bshell
-│   │   ├── bb.sh
-│   │   └── git-prompt.sh
-│   ├── .bashrc
-│   └── .inputrc
-├── mc
-│   └── .config
-│       └── mc
-│           ├── ini
-│           └── panels.ini
-├── mplayer
-│   └── .mplayer
+.                                      .
+├── bashrc                             └── home
+│   ├── .bshell                            └── test
+│   │   ├── bb.sh                              ├── .bshell
+│   │   └── git-prompt.sh                      │   ├── bb.sh
+│   ├── .bashrc                                │   └── git-prompt.sh
+│   └── .inputrc                               ├── .config
+├── mc                       TRANSFORMS        │   └── mc
+│   └── .config            ------------->      │       ├── ini
+│       └── mc                TO THIS          │       └── panels.ini
+│           ├── ini                            ├── .bashrc
+│           └── panels.ini                     ├── .inputrc
+├── mplayer                                    ├── .screenrc
+│   └── .mplayer                               └── .vimrc
 │       └── config
 ├── screen
 │   └── .screenrc

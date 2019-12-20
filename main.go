@@ -41,6 +41,10 @@ var urlMask string
 
 // set of characters to assign packages to
 var alphabet string
+
+// variable holding program version
+var version string
+
 // tags map
 var tags map[string]string
 
@@ -55,6 +59,9 @@ var auth transport.AuthMethod
 // =================================================
 
 func main() {
+
+    // set version number
+    version = "1.0.1"
 
     // hello
     log.Println("Starting \"dot file manager\" aka:")
