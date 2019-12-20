@@ -10,7 +10,7 @@ The idea of storing configuration files in a Git repository is not a new one. Ho
 
 # How it works
 
-On typical usage, you'd type `curl yourdomain.net/dotmanendpoint | bash -` in your terminal to show ineteractive menu, where you choose which dotfiles you want to install. You can choose by selecting packages (folders) or by configurable tags.
+On typical use case, you'd type `curl yourdomain.net/dotmanendpoint | bash -` in your terminal to show ineteractive menu, where you choose which dotfiles you want to install. You can choose by selecting packages (folders) or by configurable tags.
 
 Configuration and maintanance is also dead simple. You organise your dotfiles, by creating a folder for each application you'd like to manage and putting it's configuration files inside. Store each of such folders in root of single Git repository of your choice. When installing dotfiles using Dotman, content of each selected folder is copied in respect to install path ($HOME be default).
 
