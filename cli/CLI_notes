@@ -1,0 +1,23 @@
+dman app list
+         list installed
+         create [app_name]
+         delete [app_name]
+         add [app_name] [file/path]        # find ~ in path and replace, if not absolute path
+         install (menu)
+
+  
+     alias create
+           list
+           delete
+           add
+           install
+ 
+     update now
+            auto enable
+                 disable
+        
+
+dman * passed to git 
+
+
+main url tells what to do next. Now only wrong secret when url too long;/
